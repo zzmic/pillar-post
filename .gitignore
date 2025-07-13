@@ -1,0 +1,33 @@
+# Node.js.
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.env # Contains sensitive environment variables [1]
+
+# Client (React.js) specific.
+client/build/
+client/node_modules/
+client/.env
+
+# Server (Node.js/Express.js) specific.
+server/node_modules/
+server/.env # Crucial for sensitive data like database URIs and JWT secrets [1]
+
+# Logs.
+*.log
+logs/
+*.log.*
+
+# OS generated files.
+.DS_Store
+Thumbs.db
+
+# IDE specific files.
+.vscode/
+.idea/
+
+# Temporary files.
+tmp/
+*.tmp
