@@ -3,6 +3,7 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
+const db = require("./models");
 
 // Create an instance of an Express.js application.
 const app = express();
@@ -50,7 +51,17 @@ app.post("/api/data", (req, res) => {
   }
 });
 
-// Start the server and listen on the specified port.
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+// Synchronize the application's database models with the actual database
+// and start the server only if the synchronization is successful.
+db.sequelize
+  .sync({ force: false })
+  .then(() => {
+    console.log("Database and tables synced!");
+    app.listen(PORT, () => {
+      console.log(`Server is running on http://localhost:${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error("Failed to sync database:", error.message);
+    process.exit(1);
+  });

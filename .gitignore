@@ -1,14 +1,14 @@
 # Node.js.
 .pnpm-debug.log*
-.env # Contains sensitive environment variables [1]
+.env
 
-# Client (React.js) specific.
+# Client (React) specific.
 client/build/
 client/.env
 
 # Server (Node.js/Express.js) specific.
 server/node_modules/
-server/.env # Crucial for sensitive data like database URIs and JWT secrets [1]
+server/.env
 
 # Logs.
 *.log
