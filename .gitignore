@@ -1,14 +1,9 @@
 # Node.js.
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 .pnpm-debug.log*
 .env # Contains sensitive environment variables [1]
 
 # Client (React.js) specific.
 client/build/
-client/node_modules/
 client/.env
 
 # Server (Node.js/Express.js) specific.
