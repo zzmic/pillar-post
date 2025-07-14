@@ -1,14 +1,13 @@
-// Load environment variables from the `.env` file.
+// Load the environment variables from the `.env` file.
 require("dotenv").config();
 
-// Import necessary modules.
 const express = require("express");
 const cors = require("cors");
 
-// Create an instance of an Express application.
+// Create an instance of an Express.js application.
 const app = express();
-// Use the port from either the environment variable or default to 3000.
-const PORT = process.env.PORT || 3000;
+// Use the port from either the environment variable or default to 3001.
+const PORT = process.env.PORT || 3001;
 
 // Configure the middleware.
 app.use(cors()); // Enable CORS (Cross-Origin Resource Sharing) for all routes (for development purposes).
@@ -19,6 +18,15 @@ app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies.
 // This route responds with a message indicating the server is running.
 app.get("/", (req, res) => {
   res.send("Server is running!");
+});
+
+// Example route for testing backend communication.
+// This route responds with a JSON object containing a message and a timestamp.
+app.get("/api/test", (req, res) => {
+  res.json({
+    message: "Hello from the backend API (via /api/test)!",
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // Example route for handling POST requests to "/api/data".
