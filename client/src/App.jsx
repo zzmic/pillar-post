@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-import TestBackend from "./components/TestBackend";
+import TestBackend from "./TestBackend.jsx";
 import "./App.css";
 
 // Function to define the main `App` component.
