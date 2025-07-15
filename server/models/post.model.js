@@ -1,34 +1,33 @@
 module.exports = (sequelize, DataTypes) => {
-  // Define the `User` model with its attributes and validation rules.
-  const User = sequelize.define(
-    "users",
+  const Post = sequelize.define(
+    "posts",
     {
-      user_id: {
+      post_id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
         allowNull: false,
       },
-      username: {
-        type: DataTypes.STRING(100),
+      user_id: {
+        type: DataTypes.INTEGER,
         allowNull: false,
-        unique: true,
       },
-      email: {
-        type: DataTypes.STRING(100),
-        allowNull: false,
-        unique: true,
-        validate: {
-          isEmail: true,
-        },
-      },
-      password: {
+      title: {
         type: DataTypes.STRING(255),
         allowNull: false,
       },
-      role: {
-        type: DataTypes.ENUM("admin", "author", "subscriber"),
-        defaultValue: "subscriber",
+      slug: {
+        type: DataTypes.STRING(100),
+        allowNull: false,
+        unique: true,
+      },
+      body: {
+        type: DataTypes.TEXT,
+        allowNull: false,
+      },
+      status: {
+        type: DataTypes.ENUM("draft", "published"),
+        defaultValue: "draft",
         allowNull: false,
       },
       created_at: {
@@ -39,9 +38,14 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       timestamps: false,
-      tableName: "users",
+      tableName: "posts",
+      hooks: {
+        beforeUpdate: (post, options) => {
+          post.updated_at = new Date();
+        },
+      },
     }
   );
 
-  return User;
+  return Post;
 };

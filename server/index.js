@@ -51,17 +51,21 @@ app.post("/api/data", (req, res) => {
   }
 });
 
-// Synchronize the application's database models with the actual database
-// and start the server only if the synchronization is successful.
-db.sequelize
-  .sync({ force: false })
-  .then(() => {
-    console.log("Database and tables synced!");
-    app.listen(PORT, () => {
-      console.log(`Server is running on http://localhost:${PORT}`);
-    });
-  })
-  .catch((error) => {
-    console.error("Failed to sync database:", error.message);
-    process.exit(1);
-  });
+// Start the server, assuming migrations have been run separately and the database is ready.
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
+
+// Uncomment the following lines to sync the database and start the server afterwards.
+// db.sequelize
+//   .sync({ force: false })
+//   .then(() => {
+//     console.log("Database and tables synced!");
+//     app.listen(PORT, () => {
+//       console.log(`Server is running on http://localhost:${PORT}`);
+//     });
+//   })
+//   .catch((error) => {
+//     console.error("Failed to sync database:", error.message);
+//     process.exit(1);
+//   });

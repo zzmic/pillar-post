@@ -1,26 +1,127 @@
-const { Sequelize, DataTypes } = require("sequelize");
-const dbConfig = require("../config/db.config.js");
+"use strict";
+
+const fs = require("fs");
+const path = require("path");
+const Sequelize = require("sequelize");
+const process = require("process");
+const basename = path.basename(__filename);
+const env = process.env.NODE_ENV || "development";
+const config = require("../config/config.js")[env];
+const db = {};
 
 // Create a new `Sequelize` instance with the database configuration that represents the connection to the database.
-const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
-  host: dbConfig.HOST,
-  port: dbConfig.PORT,
-  dialect: dbConfig.dialect,
-  pool: {
-    max: dbConfig.pool.max,
-    min: dbConfig.pool.min,
-    acquire: dbConfig.pool.acquire,
-    idle: dbConfig.pool.idle,
-  },
+let sequelize;
+if (config.use_env_variable) {
+  sequelize = new Sequelize(process.env[config.use_env_variable], config);
+} else {
+  sequelize = new Sequelize(
+    config.database,
+    config.username,
+    config.password,
+    config
+  );
+}
+
+// Read all files in the current directory, excluding the current file and test files, and import them as models.
+fs.readdirSync(__dirname)
+  .filter((file) => {
+    return (
+      file.indexOf(".") !== 0 &&
+      file !== basename &&
+      file.slice(-3) === ".js" &&
+      file.indexOf(".test.js") === -1
+    );
+  })
+  .forEach((file) => {
+    const model = require(path.join(__dirname, file))(
+      sequelize,
+      Sequelize.DataTypes
+    );
+    db[model.name] = model;
+  });
+
+Object.keys(db).forEach((modelName) => {
+  if (db[modelName].associate) {
+    db[modelName].associate(db);
+  }
 });
 
-const db = {};
 // Store the `Sequelize` class itself and the initialized `Sequelize` connection instance in the `db` object.
-db.Sequelize = Sequelize;
 db.sequelize = sequelize;
+db.Sequelize = Sequelize;
 
-// Import and initialize the user model, associating it with the `Sequelize` instance and `DataTypes`,
-// which allows the model to define a table structure associated with this specific database connection.
-db.user = require("./user.model.js")(sequelize, DataTypes);
+/* Define associations between models. */
+// Users <-> Posts (one-to-many).
+db.users.hasMany(db.posts, {
+  foreignKey: "user_id",
+  onDelete: "SET NULL",
+  as: "posts",
+});
+db.posts.belongsTo(db.users, {
+  foreignKey: "user_id",
+  as: "author",
+});
+
+// Users <-> Comments (one-to-many).
+db.users.hasMany(db.comments, {
+  foreignKey: "user_id",
+  onDelete: "SET NULL", // Matches your schema
+  as: "comments",
+});
+db.comments.belongsTo(db.users, {
+  foreignKey: "user_id",
+  as: "commenter",
+});
+
+// Posts <-> Comments (one-to-many).
+db.posts.hasMany(db.comments, {
+  foreignKey: "post_id",
+  onDelete: "CASCADE", // Matches your schema
+  as: "comments",
+});
+db.comments.belongsTo(db.posts, {
+  foreignKey: "post_id",
+  as: "post",
+});
+
+// Comments <-> Comments (self-referential association for replies;
+// one-to-many for threaded comments).
+db.comments.hasMany(db.comments, {
+  foreignKey: "parent_comment_id",
+  as: "replies",
+  onDelete: "CASCADE",
+});
+db.comments.belongsTo(db.comments, {
+  foreignKey: "parent_comment_id",
+  as: "parentComment",
+});
+
+// Posts <-> Categories (many-to-many association through `post_categories` (join table)).
+db.posts.belongsToMany(db.categories, {
+  through: "post_categories",
+  foreignKey: "post_id",
+  otherKey: "category_id",
+  as: "categories",
+});
+db.categories.belongsToMany(db.posts, {
+  through: "post_categories",
+  foreignKey: "category_id",
+  otherKey: "post_id",
+  as: "posts",
+});
+
+// Posts <-> Tags (many-to-many association through `post_tags` (join table)).
+db.posts.belongsToMany(db.tags, {
+  through: "post_tags",
+  foreignKey: "post_id",
+  otherKey: "tag_id",
+  as: "tags",
+});
+db.tags.belongsToMany(db.posts, {
+  through: "post_tags",
+  foreignKey: "tag_id",
+  otherKey: "post_id",
+  as: "posts",
+});
 
 module.exports = db;
