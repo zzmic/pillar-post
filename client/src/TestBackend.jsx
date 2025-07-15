@@ -17,8 +17,8 @@ function TestBackend() {
       .then((response) => {
         setMessage(response.data.message);
       })
-      .catch((error) => {
-        console.log("Error fetching data:", error);
+      .catch((err) => {
+        console.log("Error fetching data:", err);
         setError(
           "Failed to fetch data from the backend. Ensure the backend is running and the API endpoint is correct."
         );
