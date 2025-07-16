@@ -6,7 +6,7 @@ const isAuthenticated = (req, res, next) => {
     };
     next();
   } else {
-    const error = new Error("Authentication required. Please sign in.");
+    const error = new Error("Authentication required: Please sign in.");
     error.statusCode = 401;
     next(error);
   }

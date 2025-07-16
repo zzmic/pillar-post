@@ -13,7 +13,7 @@ const { Pool } = require("pg");
 // Import the database models and configuration.
 const db = require("./models");
 const dbConfig =
-  require("./config/config.db")[process.env.NODE_ENV || "development"];
+  require("./config/config")[process.env.NODE_ENV || "development"];
 
 // Create an instance of an Express.js application.
 const app = express();
@@ -90,7 +90,7 @@ app.get("/", (req, res) => {
 
 // Global error handling middleware.
 app.use((err, req, res, next) => {
-  console.error("Error occurred:", err.stack);
+  console.error("Error occurred:", err);
   let statusCode = err.status || 500;
   let message = err.message || "Internal Server Error";
   if (err.name === "UnauthorizedError" || err.name === "ForbiddenError") {
