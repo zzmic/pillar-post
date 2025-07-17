@@ -94,9 +94,57 @@ const postValidationRules = () => {
   ];
 };
 
+const commentValidationRules = (includeParentId = true) => {
+  const rules = [
+    body("comment_body")
+      .notEmpty()
+      .withMessage("Comment body is required")
+      .isLength({ min: 1, max: 2000 })
+      .withMessage("Comment must be between 1 and 2000 characters")
+      .customSanitizer((value) => {
+        return sanitizeHtml(value, {
+          allowedTags: [
+            "p",
+            "br",
+            "strong",
+            "em",
+            "u",
+            "a",
+            "ul",
+            "ol",
+            "li",
+            "blockquote",
+            "code",
+          ],
+          allowedAttributes: {
+            a: ["href"],
+          },
+          allowedSchemes: ["http", "https", "mailto"],
+        });
+      }),
+  ];
+
+  // Only include `parent_comment_id` validation while creating a comment.
+  if (includeParentId) {
+    rules.push(
+      body("parent_comment_id")
+        .optional()
+        .isInt({ min: 1 })
+        .withMessage("Parent comment ID must be a positive integer")
+    );
+  }
+
+  return rules;
+};
+
+// Function to validate comment updates (for convenience).
+const commentUpdateValidationRules = () => commentValidationRules(false);
+
 module.exports = {
   validate,
   signUpValidationRules,
   logInValidationRules,
   postValidationRules,
+  commentValidationRules,
+  commentUpdateValidationRules,
 };

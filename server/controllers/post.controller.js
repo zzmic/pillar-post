@@ -11,13 +11,17 @@ const {
 } = require("../utils/pagination.utils");
 const { generateSlug, ensureUniqueSlug } = require("../utils/slug.utils");
 
-// Controller to create a new post.
+// Function to create a new post.
 const createPost = async (req, res, next) => {
   try {
     const { title, body, slug, status } = req.body;
     const userId = req.user.userId;
+
+    // Generate a slug from the title if not provided (and ensure its uniqueness).
     let finalSlug = slug || generateSlug(title);
     finalSlug = await ensureUniqueSlug(finalSlug);
+
+    // Create the new post.
     const newPost = await Post.create({
       title,
       body: body,
@@ -25,6 +29,8 @@ const createPost = async (req, res, next) => {
       status,
       user_id: userId,
     });
+
+    // Fetch the created post with its associated data.
     const createdPost = await Post.findByPk(newPost.post_id, {
       include: [
         { model: User, as: "author", attributes: ["user_id", "username"] },
@@ -32,6 +38,7 @@ const createPost = async (req, res, next) => {
         { model: Tag, as: "tags" },
       ],
     });
+
     res.status(201).json({
       status: "success",
       message: "Post created successfully",
@@ -45,24 +52,31 @@ const createPost = async (req, res, next) => {
   }
 };
 
-// Controller to get all posts with pagination and filtering.
+// Function to get all posts with pagination and filtering.
 const getAllPosts = async (req, res, next) => {
   try {
     const paginationOptions = getPaginationOptions(req);
     const { category, tag, status, search } = req.query;
     const userRole = req.user ? req.user.role : null;
+
+    // Build the where-conditions based on the user's role and query parameters.
     const whereConditions = {};
     if (userRole !== "admin") {
       whereConditions.status = "published";
     } else if (status) {
+      // If the user is an admin, allow filtering by status.
       whereConditions.status = status;
     }
+
+    // Add the search functionality for titles and bodies.
     if (search) {
       whereConditions[db.Sequelize.Op.or] = [
         { title: { [db.Sequelize.Op.iLike]: `%${search}%` } },
         { body: { [db.Sequelize.Op.iLike]: `%${search}%` } },
       ];
     }
+
+    // Build the include-array for associated models with optional filtering.
     const includeArray = [
       { model: User, as: "author", attributes: ["user_id", "username"] },
       {
@@ -72,14 +86,19 @@ const getAllPosts = async (req, res, next) => {
       },
       { model: Tag, as: "tags", ...(tag && { where: { slug: tag } }) },
     ];
+
+    // Fetch the posts with pagination and filtering.
     const { count, rows } = await Post.findAndCountAll({
       where: whereConditions,
       include: includeArray,
       order: [["created_at", "DESC"]],
-      distinct: true, // Important for accurate count with joins
+      distinct: true,
       ...paginationOptions,
     });
+
+    // Build the paginated response.
     const response = buildPaginatedResponse(rows, count, paginationOptions);
+
     res.status(200).json({
       status: "success",
       message: "Posts fetched successfully",
@@ -91,10 +110,12 @@ const getAllPosts = async (req, res, next) => {
   }
 };
 
-// Controller to get a single post by ID.
+// Function to get a single post.
 const getPostById = async (req, res, next) => {
   try {
     const postId = req.params.id;
+
+    // Fetch the post with its associated data.
     const post = await Post.findByPk(postId, {
       include: [
         { model: User, as: "author", attributes: ["user_id", "username"] },
@@ -102,15 +123,20 @@ const getPostById = async (req, res, next) => {
         { model: Tag, as: "tags" },
       ],
     });
+
+    // Check if the post exists.
     if (!post) {
       return res.status(404).json({
         status: "fail",
         message: "Post not found",
       });
     }
+
+    // Handle the access control for draft posts.
     if (post.status == "draft") {
       const userId = req.user ? req.user.userId : null;
       const userRole = req.user ? req.user.role : null;
+      // If the user is not authenticated or not an admin, deny access.
       if (!userId || (post.user_id !== userId && userRole !== "admin")) {
         return res.status(403).json({
           status: "fail",
@@ -119,6 +145,7 @@ const getPostById = async (req, res, next) => {
         });
       }
     }
+
     res.status(200).json({
       status: "success",
       message: "Post fetched successfully",
@@ -132,11 +159,14 @@ const getPostById = async (req, res, next) => {
   }
 };
 
+// Function to update a post.
 const updatePost = async (req, res, next) => {
   try {
     const postId = req.params.id;
     const { title, body, slug, status } = req.body;
     const post = res.post;
+
+    // Build the update data object with the provided fields.
     const updateData = {};
     if (title) {
       updateData.title = title;
@@ -150,7 +180,11 @@ const updatePost = async (req, res, next) => {
     if (status) {
       updateData.status = status;
     }
+
+    // Update the post in the database.
     await Post.update(updateData, { where: { post_id: postId } });
+
+    // Fetch the updated post with its associated data.
     const updatedPost = await Post.findByPk(postId, {
       include: [
         { model: User, as: "author", attributes: ["user_id", "username"] },
@@ -158,6 +192,7 @@ const updatePost = async (req, res, next) => {
         { model: Tag, as: "tags" },
       ],
     });
+
     res.status(200).json({
       status: "success",
       message: "Post updated successfully",
@@ -171,10 +206,14 @@ const updatePost = async (req, res, next) => {
   }
 };
 
+// Function to delete a post.
 const deletePost = async (req, res, next) => {
   try {
     const postId = req.params.id;
+
+    // Delete the post from the database.
     await Post.destroy({ where: { post_id: postId } });
+
     res.status(200).json({
       status: "success",
       message: "Post deleted successfully",

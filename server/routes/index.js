@@ -1,30 +1,25 @@
 const express = require("express");
 const router = express.Router();
 
-/* Import the individual route modules. */
+// Import the individual route modules.
 const authRoutes = require("./auth.routes");
 const postRoutes = require("./post.routes");
+const commentRoutes = require("./comment.routes");
 
 // TODO(zzmic): Import additional route modules as they are created.
 // const userRoutes = require("./user.routes");
-// const commentRoutes = require("./comment.routes");
 // const categoryRoutes = require("./category.routes");
 // const tagRoutes = require("./tag.routes");
 // const adminRoutes = require("./admin.routes");
 
-/* Mount the individual routers onto the main API router. */
-// Authentication routes (signup, login, logout).
-router.use("/auth", authRoutes);
-
-// Post-related routes (create post, get posts, update post, delete post).
-router.use("/posts", postRoutes);
+// Mount the individual routers onto the main API router.
+router.use("/auth", authRoutes); // Authentication routes (signup, login, logout).
+router.use("/posts", postRoutes); // Post-related routes (create post, get posts, update post, delete post).
+router.use("/comments", commentRoutes); // Comment-related routes (create comment, get comments, update comment, delete comment).
 
 // TODO(zzmic): Mount additional routes as they are implemented.
 // User-related routes (get user profile, update user, delete user).
 // router.use("/users", userRoutes);
-
-// Comment-related routes (create comment, get comments, update comment, delete comment).
-// router.use("/comments", commentRoutes);
 
 // Category-related routes (create category, get categories, update category, delete category).
 // router.use("/categories", categoryRoutes);
