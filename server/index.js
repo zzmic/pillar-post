@@ -1,19 +1,21 @@
 // Load the environment variables from the `.env` file.
-require("dotenv").config();
+import dotenv from "dotenv";
+dotenv.config();
 
-const express = require("express");
-const cors = require("cors");
-const helmet = require("helmet");
-const rateLimit = require("express-rate-limit");
-const cookieParser = require("cookie-parser");
-const session = require("express-session");
-const pgSession = require("connect-pg-simple")(session);
-const { Pool } = require("pg");
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
+import cookieParser from "cookie-parser";
+import session from "express-session";
+import connectPgSimple from "connect-pg-simple";
+import { Pool } from "pg";
+
+const pgSession = connectPgSimple(session);
 
 // Import the database models and configuration.
-const db = require("./models");
-const dbConfig =
-  require("./config/config")[process.env.NODE_ENV || "development"];
+import config from "./config/config.js";
+const dbConfig = config[process.env.NODE_ENV || "development"];
 
 // Create an instance of an Express.js application.
 const app = express();
@@ -74,7 +76,7 @@ app.use(express.json()); // Parse JSON bodies.
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies.
 
 // Import the consolidated API routes.
-const apiRoutes = require("./routes");
+import apiRoutes from "./routes/index.js";
 
 // Apply rate limiting to authentication routes.
 app.use("/api/auth", authLimiter);
@@ -85,11 +87,25 @@ app.use("/api", apiRoutes);
 // Simple route for the root path ("/").
 // This route responds with a message indicating the server is running.
 app.get("/", (req, res) => {
-  res.send("Server is running!");
+  res.json({
+    message: "Server is running successfully!",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || "development",
+  });
+});
+
+// "Health" check endpoint.
+app.get("/health", (req, res) => {
+  res.json({
+    status: "OK",
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || "development",
+  });
 });
 
 // Global error handling middleware.
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   console.error("Error occurred:", err);
   let statusCode = err.status || 500;
   let message = err.message || "Internal Server Error";

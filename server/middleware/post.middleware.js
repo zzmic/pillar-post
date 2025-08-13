@@ -1,27 +1,30 @@
-const sanitizeHtml = require("sanitize-html");
-const db = require("../models");
-const Post = db.posts;
+import sanitizeHtml from "sanitize-html";
+import db from "../models/index.js";
+const Posts = db.posts;
 
 // Middleware to check the ownership of a post.
 const checkPostOwnership = async (req, res, next) => {
   try {
-    const postId = req.params.id;
-    const userId = req.user ? req.user.userId : null;
+    const post_id = req.params.post_id;
+    const user_id = req.user ? req.user.user_id : null;
     const userRole = req.user ? req.user.role : null;
-    if (!userId) {
+    if (!user_id) {
       return res.status(401).json({
         status: "fail",
         message: "Unauthorized access: User not authenticated.",
       });
     }
-    const post = await Post.findByPk(postId);
+    const post = await Posts.findByPk(post_id);
     if (!post) {
       return res.status(404).json({
         status: "fail",
         message: "Post not found.",
       });
     }
-    if (post.user_id.toString() !== userId.toString() && userRole !== "admin") {
+    if (
+      post.user_id.toString() !== user_id.toString() &&
+      userRole !== "admin"
+    ) {
       return res.status(403).json({
         status: "fail",
         message: "Access denied: You do not own this post.",
@@ -47,8 +50,8 @@ const checkPostOwnership = async (req, res, next) => {
 // Middleware to check if a post exists.
 const checkPostExists = async (req, res, next) => {
   try {
-    const postId = req.params.id;
-    const post = await Post.findByPk(postId);
+    const post_id = req.params.post_id;
+    const post = await Posts.findByPk(post_id);
     if (!post) {
       return res.status(404).json({
         status: "fail",
@@ -91,7 +94,7 @@ const generatePostSlugIfNeeded = async (req, res, next) => {
   try {
     let slug = req.body.slug;
     const title = req.body.title;
-    const postId = req.params.id;
+    const post_id = req.params.post_id;
     if (!title) {
       return res.status(400).json({
         status: "fail",
@@ -108,15 +111,15 @@ const generatePostSlugIfNeeded = async (req, res, next) => {
     let isUnique = false;
     while (!isUnique) {
       let existingPost;
-      if (postId) {
-        existingPost = await Post.findOne({
+      if (post_id) {
+        existingPost = await Posts.findOne({
           where: {
             slug: uniqueSlug,
-            post_id: { [db.Sequelize.Op.ne]: postId },
+            post_id: { [db.Sequelize.Op.ne]: post_id },
           },
         });
       } else {
-        existingPost = await Post.findOne({ where: { slug: uniqueSlug } });
+        existingPost = await Posts.findOne({ where: { slug: uniqueSlug } });
       }
       if (!existingPost) {
         isUnique = true;
@@ -169,7 +172,7 @@ const sanitizePostContent = (req, res, next) => {
   }
 };
 
-module.exports = {
+export {
   checkPostOwnership,
   checkPostExists,
   generatePostSlugIfNeeded,

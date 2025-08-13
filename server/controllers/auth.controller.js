@@ -1,14 +1,14 @@
-const { hashPassword, comparePassword } = require("../utils/auth.utils");
-const db = require("../models");
-const User = db.users;
+import { hashPassword, comparePassword } from "../utils/auth.utils.js";
+import db from "../models/index.js";
+const Users = db.users;
 
 // Function to handle user sign-up.
 const signUp = async (req, res, next) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, email, password, role } = req.body;
 
     // Check if the username has already been taken.
-    const userByUsername = await User.findOne({ where: { username } });
+    const userByUsername = await Users.findOne({ where: { username } });
     if (userByUsername) {
       return res.status(409).json({
         status: "fail",
@@ -17,7 +17,7 @@ const signUp = async (req, res, next) => {
     }
 
     // Check if the email has already been taken.
-    const userByEmail = await User.findOne({ where: { email } });
+    const userByEmail = await Users.findOne({ where: { email } });
     if (userByEmail) {
       return res.status(409).json({
         status: "fail",
@@ -29,10 +29,11 @@ const signUp = async (req, res, next) => {
     const hashedPassword = await hashPassword(password);
 
     // Create a new user in the database.
-    const newUser = await User.create({
+    const newUser = await Users.create({
       username,
       email,
       password: hashedPassword,
+      role: role || "subscriber", // Default the role to "subscriber" if no role is specified.
     });
 
     res.status(201).json({
@@ -40,7 +41,7 @@ const signUp = async (req, res, next) => {
       message: "User registered successfully.",
       data: {
         user: {
-          id: newUser.user_id,
+          user_id: newUser.user_id,
           username: newUser.username,
           email: newUser.email,
           role: newUser.role,
@@ -57,10 +58,9 @@ const signUp = async (req, res, next) => {
 const logIn = async (req, res, next) => {
   try {
     const { identifier, password } = req.body;
-    const db = require("../models");
 
     // Find the user by the identifier (username or email).
-    const user = await User.findOne({
+    const user = await Users.findOne({
       where: {
         [db.Sequelize.Op.or]: [{ username: identifier }, { email: identifier }],
       },
@@ -84,7 +84,7 @@ const logIn = async (req, res, next) => {
     }
 
     // Create a session for the authenticated user.
-    req.session.userId = user.user_id;
+    req.session.user_id = user.user_id;
     req.session.role = user.role;
     await req.session.save();
 
@@ -93,7 +93,7 @@ const logIn = async (req, res, next) => {
       message: "Logged in successfully.",
       data: {
         user: {
-          id: user.user_id,
+          user_id: user.user_id,
           username: user.username,
           email: user.email,
           role: user.role,
@@ -134,8 +134,4 @@ const logOut = async (req, res, next) => {
   }
 };
 
-module.exports = {
-  signUp,
-  logIn,
-  logOut,
-};
+export { signUp, logIn, logOut };

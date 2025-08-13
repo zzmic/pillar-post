@@ -1,5 +1,5 @@
-module.exports = (sequelize, DataTypes) => {
-  const Post = sequelize.define(
+export default (sequelize, DataTypes) => {
+  const Posts = sequelize.define(
     "posts",
     {
       post_id: {
@@ -40,12 +40,12 @@ module.exports = (sequelize, DataTypes) => {
       timestamps: false,
       tableName: "posts",
       hooks: {
-        beforeUpdate: (post, options) => {
+        beforeUpdate: (post) => {
           post.updated_at = new Date();
         },
       },
     }
   );
 
-  return Post;
+  return Posts;
 };

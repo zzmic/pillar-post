@@ -1,34 +1,32 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
 
-const { isAuthenticated, isAuthor } = require("../middleware/auth.middleware");
-const {
+import { isAuthenticated, isAuthor } from "../middleware/auth.middleware.js";
+import {
   validate,
   postValidationRules,
-} = require("../middleware/validation.middleware");
-const {
+} from "../middleware/validation.middleware.js";
+import {
   checkPostOwnership,
   checkPostExists,
   generatePostSlugIfNeeded,
-} = require("../middleware/post.middleware");
-
-const {
+} from "../middleware/post.middleware.js";
+import {
   createPost,
   getAllPosts,
   getPostById,
   updatePost,
   deletePost,
-} = require("../controllers/post.controller");
+} from "../controllers/post.controller.js";
 
 // Optional authentication middleware for public routes.
 const optionalAuth = (req, res, next) => {
-  if (req.session && req.session.userId) {
+  if (req.session && req.session.user_id) {
     req.user = {
-      userId: req.session.userId,
+      user_id: req.session.user_id,
       role: req.session.role,
     };
   }
-  // Always proceed, whether authenticated or not
   next();
 };
 
@@ -46,12 +44,12 @@ router.post(
 // GET /api/posts - Get all posts.
 router.get("/", getAllPosts);
 
-// GET /api/posts/:id - Get a single post.
-router.get("/:id", optionalAuth, checkPostExists, getPostById);
+// GET /api/posts/:post_id - Get a single post.
+router.get("/:post_id", optionalAuth, checkPostExists, getPostById);
 
-// PUT /api/posts/:id - Update a post.
+// PUT /api/posts/:post_id - Update a post.
 router.put(
-  "/:id",
+  "/:post_id",
   isAuthenticated,
   checkPostExists,
   checkPostOwnership,
@@ -60,13 +58,13 @@ router.put(
   updatePost
 );
 
-// DELETE /api/posts/:id - Delete a post.
+// DELETE /api/posts/:post_id - Delete a post.
 router.delete(
-  "/:id",
+  "/:post_id",
   isAuthenticated,
   checkPostExists,
   checkPostOwnership,
   deletePost
 );
 
-module.exports = router;
+export default router;

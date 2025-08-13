@@ -1,57 +1,53 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
 
-const { isAuthenticated } = require("../middleware/auth.middleware");
-const {
+import { isAuthenticated } from "../middleware/auth.middleware.js";
+import {
   validate,
   commentValidationRules,
   commentUpdateValidationRules,
-} = require("../middleware/validation.middleware");
-const {
-  checkCommentExists,
-  checkCommentOwnership,
-} = require("../middleware/comment.middleware");
-
-const {
+} from "../middleware/validation.middleware.js";
+// Comment middleware imports removed - not currently used in routes
+import {
   createComment,
   getCommentsByPost,
   updateComment,
   deleteComment,
-} = require("../controllers/comment.controller");
+} from "../controllers/comment.controller.js";
 
 // Optional authentication middleware for public routes.
 const optionalAuth = (req, res, next) => {
-  if (req.session && req.session.userId) {
+  if (req.session && req.session.user_id) {
     req.user = {
-      userId: req.session.userId,
+      user_id: req.session.user_id,
       role: req.session.role,
     };
   }
   next();
 };
 
-// POST /api/comments/posts/:postId - Create a new comment on a post.
+// POST /api/comments/posts/:post_id - Create a new comment on a post.
 router.post(
-  "/posts/:postId",
+  "/posts/:post_id",
   isAuthenticated,
   commentValidationRules(),
   validate,
   createComment
 );
 
-// GET /api/comments/posts/:postId - Get all comments for a post.
-router.get("/posts/:postId", optionalAuth, getCommentsByPost);
+// GET /api/comments/posts/:post_id - Get all comments for a post.
+router.get("/posts/:post_id", optionalAuth, getCommentsByPost);
 
-// PUT /api/comments/:commentId - Update a comment.
+// PUT /api/comments/:comment_id - Update a comment.
 router.put(
-  "/:commentId",
+  "/:comment_id",
   isAuthenticated,
   commentUpdateValidationRules(),
   validate,
   updateComment
 );
 
-// DELETE /api/comments/:commentId - Delete a comment.
-router.delete("/:commentId", isAuthenticated, deleteComment);
+// DELETE /api/comments/:comment_id - Delete a comment.
+router.delete("/:comment_id", isAuthenticated, deleteComment);
 
-module.exports = router;
+export default router;

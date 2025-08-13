@@ -1,5 +1,5 @@
-module.exports = (sequelize, DataTypes) => {
-  const Tag = sequelize.define(
+export default (sequelize, DataTypes) => {
+  const Tags = sequelize.define(
     "tags",
     {
       tag_id: {
@@ -24,5 +24,5 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
 
-  return Tag;
+  return Tags;
 };

@@ -1,11 +1,11 @@
-const db = require("../models");
-const Comment = db.comments;
+import db from "../models/index.js";
+const Comments = db.comments;
 
 // Middleware to check if a comment exists by its ID.
 const checkCommentExists = async (req, res, next) => {
   try {
-    const commentId = req.params.commentId;
-    const comment = await Comment.findByPk(commentId);
+    const comment_id = req.params.comment_id;
+    const comment = await Comments.findByPk(comment_id);
     if (!comment) {
       return res.status(404).json({
         status: "fail",
@@ -22,10 +22,10 @@ const checkCommentExists = async (req, res, next) => {
 
 // Middleware to check if the authenticated user owns the comment.
 const checkCommentOwnership = (req, res, next) => {
-  const userId = req.user.userId;
+  const user_id = req.user.user_id;
   const userRole = req.user.role;
   const commentUserId = req.comment.user_id;
-  if (userRole === "admin" || userId === commentUserId) {
+  if (userRole === "admin" || user_id === commentUserId) {
     next();
   } else {
     return res.status(403).json({
@@ -35,7 +35,4 @@ const checkCommentOwnership = (req, res, next) => {
   }
 };
 
-module.exports = {
-  checkCommentExists,
-  checkCommentOwnership,
-};
+export { checkCommentExists, checkCommentOwnership };

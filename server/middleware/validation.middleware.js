@@ -1,5 +1,5 @@
-const { body, validationResult } = require("express-validator");
-const sanitizeHtml = require("sanitize-html");
+import { body, validationResult } from "express-validator";
+import sanitizeHtml from "sanitize-html";
 
 // Middleware to validate request data using `express-validator`.
 const validate = (req, res, next) => {
@@ -61,8 +61,8 @@ const postValidationRules = () => {
     body("title")
       .notEmpty()
       .withMessage("Title is required")
-      .isLength({ min: 3, max: 255 })
-      .withMessage("Title must be between 3 and 255 characters"),
+      .isLength({ min: 1, max: 255 })
+      .withMessage("Title must be between 1 and 255 characters"),
     body("body")
       .notEmpty()
       .withMessage("Content is required")
@@ -96,11 +96,11 @@ const postValidationRules = () => {
 
 const commentValidationRules = (includeParentId = true) => {
   const rules = [
-    body("comment_body")
+    body("commentBody")
       .notEmpty()
       .withMessage("Comment body is required")
-      .isLength({ min: 1, max: 2000 })
-      .withMessage("Comment must be between 1 and 2000 characters")
+      .isLength({ min: 1, max: 1000 })
+      .withMessage("Comment must be between 1 and 1000 characters")
       .customSanitizer((value) => {
         return sanitizeHtml(value, {
           allowedTags: [
@@ -127,7 +127,7 @@ const commentValidationRules = (includeParentId = true) => {
   // Only include `parent_comment_id` validation while creating a comment.
   if (includeParentId) {
     rules.push(
-      body("parent_comment_id")
+      body("parentCommentId")
         .optional()
         .isInt({ min: 1 })
         .withMessage("Parent comment ID must be a positive integer")
@@ -140,11 +140,97 @@ const commentValidationRules = (includeParentId = true) => {
 // Function to validate comment updates (for convenience).
 const commentUpdateValidationRules = () => commentValidationRules(false);
 
-module.exports = {
+// Middleware to validate category data.
+const categoryValidationRules = () => {
+  return [
+    body("name")
+      .notEmpty()
+      .withMessage("Category name is required")
+      .isLength({ min: 2, max: 255 })
+      .withMessage("Category name must be between 2 and 255 characters")
+      .trim()
+      .escape(),
+    body("description")
+      .optional()
+      .isLength({ max: 500 })
+      .withMessage("Description must not exceed 500 characters")
+      .trim()
+      .escape(),
+    body("slug")
+      .optional()
+      .isLength({ min: 1, max: 100 })
+      .withMessage("Slug must be between 1 and 100 characters")
+      .matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+      .withMessage(
+        "Slug must contain only lowercase letters, numbers, and hyphens"
+      ),
+  ];
+};
+
+// Middleware to validate category update data (allowing partial updates).
+const categoryUpdateValidationRules = () => {
+  return [
+    body("name")
+      .optional()
+      .isLength({ min: 1, max: 255 })
+      .withMessage("Name must be between 1 and 255 characters")
+      .trim()
+      .escape(),
+    body("slug")
+      .optional()
+      .isSlug()
+      .withMessage("Invalid slug format")
+      .isLength({ min: 1, max: 100 })
+      .withMessage("Slug must be between 1 and 100 characters"),
+  ];
+};
+
+// Middleware to validate tag data.
+const tagValidationRules = () => {
+  return [
+    body("name")
+      .notEmpty()
+      .withMessage("Tag name is required")
+      .isLength({ min: 1, max: 50 })
+      .withMessage("Tag name must be between 1 and 50 characters")
+      .trim()
+      .escape(),
+    body("slug")
+      .optional()
+      .isSlug()
+      .withMessage("Invalid slug format")
+      .isLength({ min: 1, max: 100 })
+      .withMessage("Slug must be between 1 and 100 characters"),
+  ];
+};
+
+// Middleware to validate tag update data.
+const tagUpdateValidationRules = () => {
+  return [
+    body("name")
+      .optional()
+      .isLength({ min: 1, max: 50 })
+      .withMessage("Tag name must be between 1 and 50 characters")
+      .trim()
+      .escape(),
+    body("slug")
+      .optional()
+      .isSlug()
+      .withMessage("Invalid slug format")
+      .isLength({ min: 1, max: 100 })
+      .withMessage("Slug must be between 1 and 100 characters"),
+  ];
+};
+
+export {
   validate,
   signUpValidationRules,
   logInValidationRules,
   postValidationRules,
   commentValidationRules,
   commentUpdateValidationRules,
+  categoryValidationRules,
+  categoryUpdateValidationRules,
+  tagValidationRules,
+  tagUpdateValidationRules,
 };

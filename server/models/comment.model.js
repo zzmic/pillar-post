@@ -1,5 +1,5 @@
-module.exports = (sequelize, DataTypes) => {
-  const Comment = sequelize.define(
+export default (sequelize, DataTypes) => {
+  const Comments = sequelize.define(
     "comments",
     {
       comment_id: {
@@ -41,5 +41,5 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
 
-  return Comment;
+  return Comments;
 };

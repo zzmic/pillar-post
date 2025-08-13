@@ -1,6 +1,6 @@
-module.exports = (sequelize, DataTypes) => {
+export default (sequelize, DataTypes) => {
   // Define the `User` model with its attributes and validation rules.
-  const User = sequelize.define(
+  const Users = sequelize.define(
     "users",
     {
       user_id: {
@@ -43,5 +43,5 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
 
-  return User;
+  return Users;
 };

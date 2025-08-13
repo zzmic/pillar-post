@@ -1,6 +1,7 @@
-require("dotenv").config();
+import dotenv from "dotenv";
+dotenv.config();
 
-module.exports = {
+export default {
   development: {
     host: process.env.DB_HOST || "localhost",
     port: process.env.DB_PORT || 5432,

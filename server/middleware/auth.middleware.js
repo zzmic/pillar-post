@@ -1,7 +1,7 @@
 const isAuthenticated = (req, res, next) => {
-  if (req.session && req.session.userId) {
+  if (req.session && req.session.user_id) {
     req.user = {
-      userId: req.session.userId,
+      user_id: req.session.user_id,
       role: req.session.role,
     };
     next();
@@ -48,9 +48,4 @@ const isSubscriber = (req, res, next) => {
   }
 };
 
-module.exports = {
-  isAuthenticated,
-  isAdmin,
-  isAuthor,
-  isSubscriber,
-};
+export { isAuthenticated, isAdmin, isAuthor, isSubscriber };

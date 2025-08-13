@@ -32,7 +32,4 @@ const buildPaginatedResponse = (data, totalCount, paginationOptions) => {
   };
 };
 
-module.exports = {
-  getPaginationOptions,
-  buildPaginatedResponse,
-};
+export { getPaginationOptions, buildPaginatedResponse };

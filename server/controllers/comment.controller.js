@@ -1,18 +1,17 @@
-const { body } = require("express-validator");
-const db = require("../models");
-const Comment = db.comments;
-const User = db.users;
-const Post = db.posts;
+import db from "../models/index.js";
+const Comments = db.comments;
+const Users = db.users;
+const Posts = db.posts;
 
 // Function to create a new comment on a post.
 const createComment = async (req, res, next) => {
   try {
-    const { comment_body, parent_comment_id } = req.body;
-    const { postId } = req.params;
-    const userId = req.user.userId;
+    const { commentBody, parentCommentId } = req.body;
+    const { post_id } = req.params;
+    const user_id = req.user.user_id;
 
     // Verify whether the post exists.
-    const post = await Post.findByPk(postId);
+    const post = await Posts.findByPk(post_id);
     if (!post) {
       return res.status(404).json({
         status: "fail",
@@ -20,16 +19,16 @@ const createComment = async (req, res, next) => {
       });
     }
 
-    // If `parent_comment_id` is provided, check if it exists and belongs to the post.
-    if (parent_comment_id) {
-      const parentComment = await Comment.findByPk(parent_comment_id);
+    // If `parentCommentId` is provided, check if it exists and belongs to the post.
+    if (parentCommentId) {
+      const parentComment = await Comments.findByPk(parentCommentId);
       if (!parentComment) {
         return res.status(404).json({
           status: "fail",
           message: "Parent comment not found",
         });
       }
-      if (parentComment.post_id !== parseInt(postId)) {
+      if (parentComment.post_id !== parseInt(post_id)) {
         return res.status(400).json({
           status: "fail",
           message: "Parent comment does not belong to this post",
@@ -38,19 +37,19 @@ const createComment = async (req, res, next) => {
     }
 
     // Create the comment (with the default status of "pending").
-    const newComment = await Comment.create({
-      post_id: postId,
-      user_id: userId,
-      parent_comment_id: parent_comment_id || null,
-      body: comment_body,
+    const newComment = await Comments.create({
+      post_id: post_id,
+      user_id: user_id,
+      parent_comment_id: parentCommentId || null,
+      body: commentBody,
       status: "pending",
     });
 
     // Fetch the newly created comment with user details.
-    const createdComment = await Comment.findByPk(newComment.comment_id, {
+    const createdComment = await Comments.findByPk(newComment.comment_id, {
       include: [
         {
-          model: User,
+          model: Users,
           as: "commenter",
           attributes: ["user_id", "username"],
         },
@@ -101,11 +100,11 @@ const structureComments = (comments) => {
 // Function to get all comments for a post, including nested replies.
 const getCommentsByPost = async (req, res, next) => {
   try {
-    const { postId } = req.params;
+    const { post_id } = req.params;
     const userRole = req.user ? req.user.role : null;
 
     // Verify whether the post exists.
-    const post = await Post.findByPk(postId);
+    const post = await Posts.findByPk(post_id);
     if (!post) {
       return res.status(404).json({
         status: "fail",
@@ -115,7 +114,7 @@ const getCommentsByPost = async (req, res, next) => {
 
     // Build where-conditions based on the user role.
     const whereConditions = {
-      post_id: postId,
+      post_id: post_id,
     };
 
     // If the user is not an admin, only fetch approved comments.
@@ -124,11 +123,11 @@ const getCommentsByPost = async (req, res, next) => {
     }
 
     // Fetch comments with user details.
-    const comments = await Comment.findAll({
+    const comments = await Comments.findAll({
       where: whereConditions,
       include: [
         {
-          model: User,
+          model: Users,
           as: "commenter",
           attributes: ["user_id", "username"],
         },
@@ -156,11 +155,11 @@ const getCommentsByPost = async (req, res, next) => {
 // Function to update a comment.
 const updateComment = async (req, res, next) => {
   try {
-    const { commentId } = req.params;
-    const { comment_body } = req.body;
+    const { comment_id } = req.params;
+    const { commentBody } = req.body;
 
     // Find the comment.
-    const comment = await Comment.findByPk(commentId);
+    const comment = await Comments.findByPk(comment_id);
     if (!comment) {
       return res.status(404).json({
         status: "fail",
@@ -169,27 +168,25 @@ const updateComment = async (req, res, next) => {
     }
 
     // Check the ownership (users can only update their own comments unless they are admins).
-    const userId = req.user.userId;
+    const user_id = req.user.user_id;
     const userRole = req.user.role;
-    if (userRole !== "admin" && userId !== comment.user_id) {
+    if (userRole !== "admin" && user_id !== comment.user_id) {
       return res.status(403).json({
         status: "fail",
         message: "Access denied: You can only update your own comments",
       });
-    }
-
-    // Update the comment body and reset status to "pending" if the user is not an admin.
+    } // Update the comment body and reset status to "pending" if the user is not an admin.
     await comment.update({
-      body: comment_body,
+      body: commentBody,
       // Reset status to pending if non-admin user edits an approved comment
       status: userRole === "admin" ? comment.status : "pending",
     });
 
     // Fetch updated comment with user details.
-    const updatedComment = await Comment.findByPk(commentId, {
+    const updatedComment = await Comments.findByPk(comment_id, {
       include: [
         {
-          model: User,
+          model: Users,
           as: "commenter",
           attributes: ["user_id", "username"],
         },
@@ -213,10 +210,10 @@ const updateComment = async (req, res, next) => {
 // Function to delete a comment.
 const deleteComment = async (req, res, next) => {
   try {
-    const { commentId } = req.params;
+    const { comment_id } = req.params;
 
     // Find the comment.
-    const comment = await Comment.findByPk(commentId);
+    const comment = await Comments.findByPk(comment_id);
     if (!comment) {
       return res.status(404).json({
         status: "fail",
@@ -225,9 +222,9 @@ const deleteComment = async (req, res, next) => {
     }
 
     // Check the ownership (users can only delete their own comments unless they are admins).
-    const userId = req.user.userId;
+    const user_id = req.user.user_id;
     const userRole = req.user.role;
-    if (userRole !== "admin" && userId !== comment.user_id) {
+    if (userRole !== "admin" && user_id !== comment.user_id) {
       return res.status(403).json({
         status: "fail",
         message: "Access denied: You can only delete your own comments",
@@ -236,8 +233,8 @@ const deleteComment = async (req, res, next) => {
 
     // Check if the comment has replies.
     // If it does, delete by updating content and status.
-    const repliesCount = await Comment.count({
-      where: { parent_comment_id: commentId },
+    const repliesCount = await Comments.count({
+      where: { parent_comment_id: comment_id },
     });
     if (repliesCount > 0) {
       await comment.update({
@@ -264,9 +261,4 @@ const deleteComment = async (req, res, next) => {
   }
 };
 
-module.exports = {
-  createComment,
-  getCommentsByPost,
-  updateComment,
-  deleteComment,
-};
+export { createComment, getCommentsByPost, updateComment, deleteComment };

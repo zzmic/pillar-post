@@ -1,41 +1,39 @@
-const { body } = require("express-validator");
-const db = require("../models");
-const { sequelize } = db;
-const Post = db.posts;
-const User = db.users;
-const Category = db.categories;
-const Tag = db.tags;
-const {
+import db from "../models/index.js";
+const Posts = db.posts;
+const Users = db.users;
+const Categories = db.categories;
+const Tags = db.tags;
+import {
   getPaginationOptions,
   buildPaginatedResponse,
-} = require("../utils/pagination.utils");
-const { generateSlug, ensureUniqueSlug } = require("../utils/slug.utils");
+} from "../utils/pagination.utils.js";
+import { generateSlug, ensureUniquePostSlug } from "../utils/slug.utils.js";
 
 // Function to create a new post.
 const createPost = async (req, res, next) => {
   try {
     const { title, body, slug, status } = req.body;
-    const userId = req.user.userId;
+    const user_id = req.user.user_id;
 
     // Generate a slug from the title if not provided (and ensure its uniqueness).
     let finalSlug = slug || generateSlug(title);
-    finalSlug = await ensureUniqueSlug(finalSlug);
+    finalSlug = await ensureUniquePostSlug(finalSlug);
 
     // Create the new post.
-    const newPost = await Post.create({
+    const newPost = await Posts.create({
       title,
       body: body,
       slug: finalSlug,
       status,
-      user_id: userId,
+      user_id: user_id,
     });
 
     // Fetch the created post with its associated data.
-    const createdPost = await Post.findByPk(newPost.post_id, {
+    const createdPost = await Posts.findByPk(newPost.post_id, {
       include: [
-        { model: User, as: "author", attributes: ["user_id", "username"] },
-        { model: Category, as: "categories" },
-        { model: Tag, as: "tags" },
+        { model: Users, as: "author", attributes: ["user_id", "username"] },
+        { model: Categories, as: "categories" },
+        { model: Tags, as: "tags" },
       ],
     });
 
@@ -78,17 +76,17 @@ const getAllPosts = async (req, res, next) => {
 
     // Build the include-array for associated models with optional filtering.
     const includeArray = [
-      { model: User, as: "author", attributes: ["user_id", "username"] },
+      { model: Users, as: "author", attributes: ["user_id", "username"] },
       {
-        model: Category,
+        model: Categories,
         as: "categories",
         ...(category && { where: { slug: category } }),
       },
-      { model: Tag, as: "tags", ...(tag && { where: { slug: tag } }) },
+      { model: Tags, as: "tags", ...(tag && { where: { slug: tag } }) },
     ];
 
     // Fetch the posts with pagination and filtering.
-    const { count, rows } = await Post.findAndCountAll({
+    const { count, rows } = await Posts.findAndCountAll({
       where: whereConditions,
       include: includeArray,
       order: [["created_at", "DESC"]],
@@ -113,14 +111,14 @@ const getAllPosts = async (req, res, next) => {
 // Function to get a single post.
 const getPostById = async (req, res, next) => {
   try {
-    const postId = req.params.id;
+    const post_id = req.params.post_id;
 
     // Fetch the post with its associated data.
-    const post = await Post.findByPk(postId, {
+    const post = await Posts.findByPk(post_id, {
       include: [
-        { model: User, as: "author", attributes: ["user_id", "username"] },
-        { model: Category, as: "categories" },
-        { model: Tag, as: "tags" },
+        { model: Users, as: "author", attributes: ["user_id", "username"] },
+        { model: Categories, as: "categories" },
+        { model: Tags, as: "tags" },
       ],
     });
 
@@ -134,10 +132,10 @@ const getPostById = async (req, res, next) => {
 
     // Handle the access control for draft posts.
     if (post.status == "draft") {
-      const userId = req.user ? req.user.userId : null;
+      const user_id = req.user ? req.user.user_id : null;
       const userRole = req.user ? req.user.role : null;
       // If the user is not authenticated or not an admin, deny access.
-      if (!userId || (post.user_id !== userId && userRole !== "admin")) {
+      if (!user_id || (post.user_id !== user_id && userRole !== "admin")) {
         return res.status(403).json({
           status: "fail",
           message:
@@ -162,9 +160,8 @@ const getPostById = async (req, res, next) => {
 // Function to update a post.
 const updatePost = async (req, res, next) => {
   try {
-    const postId = req.params.id;
+    const post_id = req.params.post_id;
     const { title, body, slug, status } = req.body;
-    const post = res.post;
 
     // Build the update data object with the provided fields.
     const updateData = {};
@@ -182,14 +179,14 @@ const updatePost = async (req, res, next) => {
     }
 
     // Update the post in the database.
-    await Post.update(updateData, { where: { post_id: postId } });
+    await Posts.update(updateData, { where: { post_id: post_id } });
 
     // Fetch the updated post with its associated data.
-    const updatedPost = await Post.findByPk(postId, {
+    const updatedPost = await Posts.findByPk(post_id, {
       include: [
-        { model: User, as: "author", attributes: ["user_id", "username"] },
-        { model: Category, as: "categories" },
-        { model: Tag, as: "tags" },
+        { model: Users, as: "author", attributes: ["user_id", "username"] },
+        { model: Categories, as: "categories" },
+        { model: Tags, as: "tags" },
       ],
     });
 
@@ -209,10 +206,10 @@ const updatePost = async (req, res, next) => {
 // Function to delete a post.
 const deletePost = async (req, res, next) => {
   try {
-    const postId = req.params.id;
+    const post_id = req.params.post_id;
 
     // Delete the post from the database.
-    await Post.destroy({ where: { post_id: postId } });
+    await Posts.destroy({ where: { post_id: post_id } });
 
     res.status(200).json({
       status: "success",
@@ -224,10 +221,4 @@ const deletePost = async (req, res, next) => {
   }
 };
 
-module.exports = {
-  createPost,
-  getAllPosts,
-  getPostById,
-  updatePost,
-  deletePost,
-};
+export { createPost, getAllPosts, getPostById, updatePost, deletePost };
