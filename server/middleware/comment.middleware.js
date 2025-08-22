@@ -1,7 +1,7 @@
 import db from "../models/index.js";
 const Comments = db.comments;
 
-// Middleware to check if a comment exists by its ID.
+// Middleware function to check if a comment exists by its ID.
 const checkCommentExists = async (req, res, next) => {
   try {
     const comment_id = req.params.comment_id;
@@ -20,7 +20,7 @@ const checkCommentExists = async (req, res, next) => {
   }
 };
 
-// Middleware to check if the authenticated user owns the comment.
+// Middleware function to check if the authenticated user owns the comment.
 const checkCommentOwnership = (req, res, next) => {
   const user_id = req.user.user_id;
   const userRole = req.user.role;

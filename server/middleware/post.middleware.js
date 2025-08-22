@@ -2,7 +2,7 @@ import sanitizeHtml from "sanitize-html";
 import db from "../models/index.js";
 const Posts = db.posts;
 
-// Middleware to check the ownership of a post.
+// Middleware function to check the ownership of a post.
 const checkPostOwnership = async (req, res, next) => {
   try {
     const post_id = req.params.post_id;
@@ -47,7 +47,7 @@ const checkPostOwnership = async (req, res, next) => {
   }
 };
 
-// Middleware to check if a post exists.
+// Middleware function to check if a post exists.
 const checkPostExists = async (req, res, next) => {
   try {
     const post_id = req.params.post_id;
@@ -89,7 +89,7 @@ const generatePostSlug = (text) => {
     .replace(/^-+|-+$/g, ""); // Trim leading/trailing hyphens.
 };
 
-// Middleware to generate a slug for a post if needed.
+// Middleware function to generate a slug for a post if needed.
 const generatePostSlugIfNeeded = async (req, res, next) => {
   try {
     let slug = req.body.slug;
@@ -139,7 +139,7 @@ const generatePostSlugIfNeeded = async (req, res, next) => {
   }
 };
 
-// Middleware to sanitize the HTML content of a post.
+// Middleware function to sanitize the HTML content of a post.
 const sanitizePostContent = (req, res, next) => {
   try {
     if (req.body.content) {

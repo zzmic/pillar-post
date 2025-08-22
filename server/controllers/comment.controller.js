@@ -3,14 +3,17 @@ const Comments = db.comments;
 const Users = db.users;
 const Posts = db.posts;
 
-// Function to create a new comment on a post.
+/**
+ * Create a new comment on a post.
+ * @route POST /api/posts/:post_id/comments
+ * @access Private (Author and Admin only)
+ */
 const createComment = async (req, res, next) => {
   try {
     const { commentBody, parentCommentId } = req.body;
     const { post_id } = req.params;
     const user_id = req.user.user_id;
 
-    // Verify whether the post exists.
     const post = await Posts.findByPk(post_id);
     if (!post) {
       return res.status(404).json({
@@ -19,7 +22,6 @@ const createComment = async (req, res, next) => {
       });
     }
 
-    // If `parentCommentId` is provided, check if it exists and belongs to the post.
     if (parentCommentId) {
       const parentComment = await Comments.findByPk(parentCommentId);
       if (!parentComment) {
@@ -36,7 +38,6 @@ const createComment = async (req, res, next) => {
       }
     }
 
-    // Create the comment (with the default status of "pending").
     const newComment = await Comments.create({
       post_id: post_id,
       user_id: user_id,
@@ -45,7 +46,6 @@ const createComment = async (req, res, next) => {
       status: "pending",
     });
 
-    // Fetch the newly created comment with user details.
     const createdComment = await Comments.findByPk(newComment.comment_id, {
       include: [
         {
@@ -67,12 +67,15 @@ const createComment = async (req, res, next) => {
   }
 };
 
-// Helper function to structure comments with nested replies.
+/**
+ * Helper function to structure comments with nested replies.
+ * @param {Object[]} comments - The comments to structure.
+ * @returns {Object[]} The structured comments.
+ */
 const structureComments = (comments) => {
   const commentMap = new Map();
   const rootComments = [];
 
-  // Create a map of all comments.
   comments.forEach((comment) => {
     const commentData = {
       ...comment.toJSON(),
@@ -81,7 +84,6 @@ const structureComments = (comments) => {
     commentMap.set(comment.comment_id, commentData);
   });
 
-  // Organize comments into a tree structure.
   comments.forEach((comment) => {
     const commentData = commentMap.get(comment.comment_id);
     if (comment.parent_comment_id) {
@@ -97,13 +99,16 @@ const structureComments = (comments) => {
   return rootComments;
 };
 
-// Function to get all comments for a post, including nested replies.
+/**
+ * Get all comments for a post, including nested replies.
+ * @route GET /api/posts/:post_id/comments
+ * @access Public
+ */
 const getCommentsByPost = async (req, res, next) => {
   try {
     const { post_id } = req.params;
     const userRole = req.user ? req.user.role : null;
 
-    // Verify whether the post exists.
     const post = await Posts.findByPk(post_id);
     if (!post) {
       return res.status(404).json({
@@ -112,17 +117,14 @@ const getCommentsByPost = async (req, res, next) => {
       });
     }
 
-    // Build where-conditions based on the user role.
     const whereConditions = {
       post_id: post_id,
     };
 
-    // If the user is not an admin, only fetch approved comments.
     if (userRole !== "admin") {
       whereConditions.status = "approved";
     }
 
-    // Fetch comments with user details.
     const comments = await Comments.findAll({
       where: whereConditions,
       include: [
@@ -135,7 +137,6 @@ const getCommentsByPost = async (req, res, next) => {
       order: [["created_at", "ASC"]],
     });
 
-    // Structure the comments to demonstrate nested replies.
     const structuredComments = structureComments(comments);
 
     res.status(200).json({
@@ -152,13 +153,16 @@ const getCommentsByPost = async (req, res, next) => {
   }
 };
 
-// Function to update a comment.
+/**
+ * Update a comment.
+ * @route PUT /api/comments/:comment_id
+ * @access Private (Author and Admin only)
+ */
 const updateComment = async (req, res, next) => {
   try {
     const { comment_id } = req.params;
     const { commentBody } = req.body;
 
-    // Find the comment.
     const comment = await Comments.findByPk(comment_id);
     if (!comment) {
       return res.status(404).json({
@@ -167,7 +171,6 @@ const updateComment = async (req, res, next) => {
       });
     }
 
-    // Check the ownership (users can only update their own comments unless they are admins).
     const user_id = req.user.user_id;
     const userRole = req.user.role;
     if (userRole !== "admin" && user_id !== comment.user_id) {
@@ -175,14 +178,12 @@ const updateComment = async (req, res, next) => {
         status: "fail",
         message: "Access denied: You can only update your own comments",
       });
-    } // Update the comment body and reset status to "pending" if the user is not an admin.
+    }
     await comment.update({
       body: commentBody,
-      // Reset status to pending if non-admin user edits an approved comment
       status: userRole === "admin" ? comment.status : "pending",
     });
 
-    // Fetch updated comment with user details.
     const updatedComment = await Comments.findByPk(comment_id, {
       include: [
         {
@@ -207,12 +208,15 @@ const updateComment = async (req, res, next) => {
   }
 };
 
-// Function to delete a comment.
+/**
+ * Delete a comment.
+ * @route DELETE /api/comments/:comment_id
+ * @access Private (Author and Admin only)
+ */
 const deleteComment = async (req, res, next) => {
   try {
     const { comment_id } = req.params;
 
-    // Find the comment.
     const comment = await Comments.findByPk(comment_id);
     if (!comment) {
       return res.status(404).json({
@@ -221,7 +225,6 @@ const deleteComment = async (req, res, next) => {
       });
     }
 
-    // Check the ownership (users can only delete their own comments unless they are admins).
     const user_id = req.user.user_id;
     const userRole = req.user.role;
     if (userRole !== "admin" && user_id !== comment.user_id) {
@@ -231,8 +234,6 @@ const deleteComment = async (req, res, next) => {
       });
     }
 
-    // Check if the comment has replies.
-    // If it does, delete by updating content and status.
     const repliesCount = await Comments.count({
       where: { parent_comment_id: comment_id },
     });
@@ -248,7 +249,6 @@ const deleteComment = async (req, res, next) => {
       });
     }
 
-    // Delete the comment.
     await comment.destroy();
 
     res.status(200).json({

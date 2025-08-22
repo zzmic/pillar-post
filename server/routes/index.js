@@ -7,10 +7,7 @@ import postRoutes from "./post.routes.js";
 import commentRoutes from "./comment.routes.js";
 import categoryRoutes from "./category.routes.js";
 import tagRoutes from "./tag.routes.js";
-
-// TODO(zzmic): Import additional route modules as they are created.
-// import userRoutes from "./user.routes.js";
-// import adminRoutes from "./admin.routes.js";
+import userRoutes from "./user.routes.js";
 
 // Mount the individual routers onto the main API router.
 router.use("/auth", authRoutes); // Authentication routes (signup, login, logout).
@@ -18,10 +15,7 @@ router.use("/posts", postRoutes); // Post-related routes (create post, get posts
 router.use("/comments", commentRoutes); // Comment-related routes (create comment, get comments, update comment, delete comment).
 router.use("/categories", categoryRoutes); // Category-related routes (create category, get categories, update category, delete category).
 router.use("/tags", tagRoutes); // Tag-related routes (create tag, get tags, update tag, delete tag).
-
-// TODO(zzmic): Mount additional routes as they are implemented.
-// User-related routes (get user profile, update user, delete user).
-// router.use("/users", userRoutes);
+router.use("/users", userRoutes); // User-related routes (get user profile, update user, delete user).
 
 // Admin-specific routes (manage users, manage content, system administration).
 // router.use("/admin", adminRoutes);

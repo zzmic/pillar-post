@@ -1,13 +1,16 @@
-import { hashPassword, comparePassword } from "../utils/auth.utils.js";
 import db from "../models/index.js";
+import { hashPassword, comparePassword } from "../utils/auth.utils.js";
 const Users = db.users;
 
-// Function to handle user sign-up.
+/**
+ * Sign up a new user.
+ * @route POST /api/auth/signup
+ * @access Public
+ */
 const signUp = async (req, res, next) => {
   try {
     const { username, email, password, role } = req.body;
 
-    // Check if the username has already been taken.
     const userByUsername = await Users.findOne({ where: { username } });
     if (userByUsername) {
       return res.status(409).json({
@@ -16,7 +19,6 @@ const signUp = async (req, res, next) => {
       });
     }
 
-    // Check if the email has already been taken.
     const userByEmail = await Users.findOne({ where: { email } });
     if (userByEmail) {
       return res.status(409).json({
@@ -25,15 +27,13 @@ const signUp = async (req, res, next) => {
       });
     }
 
-    // Hash the password before saving it to the database.
     const hashedPassword = await hashPassword(password);
 
-    // Create a new user in the database.
     const newUser = await Users.create({
       username,
       email,
       password: hashedPassword,
-      role: role || "subscriber", // Default the role to "subscriber" if no role is specified.
+      role: role || "subscriber",
     });
 
     res.status(201).json({
@@ -54,19 +54,21 @@ const signUp = async (req, res, next) => {
   }
 };
 
-// Function to handle user log-in.
+/**
+ * Log in a user.
+ * @route POST /api/auth/login
+ * @access Public
+ */
 const logIn = async (req, res, next) => {
   try {
     const { identifier, password } = req.body;
 
-    // Find the user by the identifier (username or email).
     const user = await Users.findOne({
       where: {
         [db.Sequelize.Op.or]: [{ username: identifier }, { email: identifier }],
       },
     });
 
-    // Check if the user exists.
     if (!user) {
       return res.status(401).json({
         status: "fail",
@@ -74,7 +76,6 @@ const logIn = async (req, res, next) => {
       });
     }
 
-    // Verify the password against the stored hash.
     const isMatch = await comparePassword(password, user.password);
     if (!isMatch) {
       return res.status(401).json({
@@ -83,7 +84,6 @@ const logIn = async (req, res, next) => {
       });
     }
 
-    // Create a session for the authenticated user.
     req.session.user_id = user.user_id;
     req.session.role = user.role;
     await req.session.save();
@@ -106,17 +106,19 @@ const logIn = async (req, res, next) => {
   }
 };
 
-// Function to handle user log-out.
+/**
+ * Log out a user.
+ * @route POST /api/auth/logout
+ * @access Public
+ */
 const logOut = async (req, res, next) => {
   try {
-    // Destroy the session to log out the user
     req.session.destroy((err) => {
       if (err) {
         console.error("Error during log-out:", err);
         return next(new Error("Failed to destroy session"));
       }
 
-      // Clear the session cookie from the client.
       res.clearCookie("connect.sid", {
         path: "/",
         secure: process.env.NODE_ENV === "production",

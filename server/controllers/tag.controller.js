@@ -3,7 +3,7 @@ const Tags = db.tags;
 const { Op } = db.Sequelize;
 
 /**
- * Create a new tag
+ * Create a new tag.
  * @route POST /api/tags
  * @access Private (Admin only)
  */
@@ -11,7 +11,6 @@ const createTag = async (req, res) => {
   try {
     const { name, slug } = req.body;
 
-    // Check if tag with same name or slug already exists
     const existingTag = await Tags.findOne({
       where: {
         [Op.or]: [{ name: name }, { slug: slug }],
@@ -48,7 +47,7 @@ const createTag = async (req, res) => {
 };
 
 /**
- * Get all tags
+ * Get all tags.
  * @route GET /api/tags
  * @access Public
  */
@@ -93,7 +92,7 @@ const getAllTags = async (req, res) => {
 };
 
 /**
- * Get a specific tag by ID
+ * Get a specific tag by ID.
  * @route GET /api/tags/:tag_id
  * @access Public
  */
@@ -128,7 +127,7 @@ const getTagByID = async (req, res) => {
 };
 
 /**
- * Get a specific tag by slug
+ * Get a specific tag by slug.
  * @route GET /api/tags/slug/:slug
  * @access Public
  */
@@ -165,7 +164,7 @@ const getTagBySlug = async (req, res) => {
 };
 
 /**
- * Update a tag
+ * Update a tag.
  * @route PUT /api/tags/:tag_id
  * @access Private (Admin only)
  */
@@ -183,7 +182,6 @@ const updateTag = async (req, res) => {
       });
     }
 
-    // Check if another tag with same name or slug exists
     if (name || slug) {
       const existingTag = await Tags.findOne({
         where: {
@@ -229,7 +227,7 @@ const updateTag = async (req, res) => {
 };
 
 /**
- * Delete a tag
+ * Delete a tag.
  * @route DELETE /api/tags/:tag_id
  * @access Private (Admin only)
  */

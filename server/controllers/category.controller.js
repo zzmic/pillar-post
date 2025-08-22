@@ -1,7 +1,11 @@
 import db from "../models/index.js";
 const Category = db.categories;
 
-// Function to create a new category.
+/**
+ * Create a new category.
+ * @route POST /api/categories
+ * @access Private (Admin only)
+ */
 const createCategory = async (req, res) => {
   try {
     const { name, description, slug } = req.body;
@@ -38,7 +42,11 @@ const createCategory = async (req, res) => {
   }
 };
 
-// Function to update an existing category.
+/**
+ * Update an existing category.
+ * @route PUT /api/categories/:category_id
+ * @access Private (Admin only)
+ */
 const updateCategory = async (req, res) => {
   try {
     const category = req.category;
@@ -75,7 +83,11 @@ const updateCategory = async (req, res) => {
   }
 };
 
-// Function to delete a category.
+/**
+ * Delete a category.
+ * @route DELETE /api/categories/:category_id
+ * @access Private (Admin only)
+ */
 const deleteCategory = async (req, res) => {
   try {
     const category = req.category;

@@ -1,13 +1,12 @@
 import { body, validationResult } from "express-validator";
 import sanitizeHtml from "sanitize-html";
 
-// Middleware to validate request data using `express-validator`.
+// Middleware function to validate request data using `express-validator`.
 const validate = (req, res, next) => {
   const errors = validationResult(req);
   if (errors.isEmpty()) {
     return next();
   }
-  // Format errors to a more readable structure.
   const formattedErrors = {};
   errors.array().forEach((err) => {
     const fieldName = err.param || err.path || "unknown";
@@ -23,14 +22,16 @@ const validate = (req, res, next) => {
   });
 };
 
-// Middleware to validate user sign-up data.
+// Middleware function to validate user sign-up data.
 const signUpValidationRules = () => {
   return [
     body("username")
-      .isLength({ min: 3, max: 50 })
-      .withMessage("Username must be between 3 and 50 characters")
-      .isAlphanumeric()
-      .withMessage("Username must be alphanumeric"),
+      .isLength({ min: 1, max: 100 })
+      .withMessage("Username must be between 1 and 100 characters")
+      .matches(/^[a-zA-Z0-9._-]+$/)
+      .withMessage(
+        "Username can only contain letters, numbers, dots, underscores, or hyphens"
+      ),
     body("email")
       .isEmail()
       .withMessage("Invalid email format")
@@ -47,7 +48,7 @@ const signUpValidationRules = () => {
   ];
 };
 
-// Middleware to validate user log-in data.
+// Middleware function to validate user log-in data.
 const logInValidationRules = () => {
   return [
     body("identifier").notEmpty().withMessage("Username or email is required"),
@@ -55,7 +56,7 @@ const logInValidationRules = () => {
   ];
 };
 
-// Middleware to validate post data.
+// Middleware function to validate post data.
 const postValidationRules = () => {
   return [
     body("title")
@@ -66,26 +67,15 @@ const postValidationRules = () => {
     body("body")
       .notEmpty()
       .withMessage("Content is required")
-      .customSanitizer((value) => {
-        return sanitizeHtml(value, {
-          allowedTags: sanitizeHtml.defaults.allowedTags.concat([
-            "img",
-            "iframe",
-          ]),
-          allowedAttributes: {
-            ...sanitizeHtml.defaults.allowedAttributes,
-            iframe: [
-              "src",
-              "width",
-              "height",
-              "frameborder",
-              "allowfullscreen",
-              "sandbox",
-            ],
-          },
-        });
-      }),
-    body("slug").optional().isSlug().withMessage("Invalid slug format"),
+      .customSanitizer((value) => sanitizeHtml(value)),
+    body("slug")
+      .optional()
+      .isLength({ min: 1, max: 100 })
+      .withMessage("Slug must be between 1 and 100 characters")
+      .matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+      .withMessage(
+        "Slug must contain only lowercase letters, numbers, and hyphens"
+      ),
     body("status")
       .notEmpty()
       .withMessage("Status is required")
@@ -123,8 +113,6 @@ const commentValidationRules = (includeParentId = true) => {
         });
       }),
   ];
-
-  // Only include `parent_comment_id` validation while creating a comment.
   if (includeParentId) {
     rules.push(
       body("parentCommentId")
@@ -140,7 +128,7 @@ const commentValidationRules = (includeParentId = true) => {
 // Function to validate comment updates (for convenience).
 const commentUpdateValidationRules = () => commentValidationRules(false);
 
-// Middleware to validate category data.
+// Middleware function to validate category data.
 const categoryValidationRules = () => {
   return [
     body("name")
@@ -167,7 +155,7 @@ const categoryValidationRules = () => {
   ];
 };
 
-// Middleware to validate category update data (allowing partial updates).
+// Middleware function to validate category update data (allowing partial updates).
 const categoryUpdateValidationRules = () => {
   return [
     body("name")
@@ -185,14 +173,34 @@ const categoryUpdateValidationRules = () => {
   ];
 };
 
-// Middleware to validate tag data.
+// Middleware function to validate tag data.
 const tagValidationRules = () => {
   return [
     body("name")
       .notEmpty()
       .withMessage("Tag name is required")
-      .isLength({ min: 1, max: 50 })
-      .withMessage("Tag name must be between 1 and 50 characters")
+      .isLength({ min: 1, max: 100 })
+      .withMessage("Tag name must be between 1 and 100 characters")
+      .trim()
+      .escape(),
+    body("slug")
+      .optional()
+      .isLength({ min: 1, max: 100 })
+      .withMessage("Slug must be between 1 and 100 characters")
+      .matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+      .withMessage(
+        "Slug must contain only lowercase letters, numbers, and hyphens"
+      ),
+  ];
+};
+
+// Middleware function to validate tag update data.
+const tagUpdateValidationRules = () => {
+  return [
+    body("name")
+      .optional()
+      .isLength({ min: 1, max: 100 })
+      .withMessage("Tag name must be between 1 and 100 characters")
       .trim()
       .escape(),
     body("slug")
@@ -204,21 +212,55 @@ const tagValidationRules = () => {
   ];
 };
 
-// Middleware to validate tag update data.
-const tagUpdateValidationRules = () => {
+// Middleware function to validate profile update data.
+const profileUpdateValidationRules = () => {
   return [
-    body("name")
+    body("username")
       .optional()
-      .isLength({ min: 1, max: 50 })
-      .withMessage("Tag name must be between 1 and 50 characters")
-      .trim()
-      .escape(),
-    body("slug")
-      .optional()
-      .isSlug()
-      .withMessage("Invalid slug format")
       .isLength({ min: 1, max: 100 })
-      .withMessage("Slug must be between 1 and 100 characters"),
+      .withMessage("Username must be between 1 and 100 characters")
+      .matches(/^[a-zA-Z0-9._-]+$/)
+      .withMessage(
+        "Username can only contain letters, numbers, dots, underscores, or hyphens"
+      ),
+    body("email").optional().isEmail().withMessage("Invalid email format"),
+    body("bio")
+      .optional()
+      .isLength({ max: 1000 })
+      .withMessage("Bio must not exceed 1000 characters")
+      .customSanitizer((value) => sanitizeHtml(value)),
+    body("profile_picture_url")
+      .optional()
+      .isURL()
+      .withMessage("Invalid URL format")
+      .isLength({ max: 500 })
+      .withMessage("Profile picture URL must not exceed 500 characters"),
+    body("first_name")
+      .optional()
+      .isLength({ min: 1, max: 100 })
+      .withMessage("First name must be between 1 and 100 characters")
+      .matches(/^[a-zA-Z\s\-']+$/)
+      .withMessage(
+        "First name can only contain letters, spaces, hyphens, or apostrophes"
+      ),
+    body("last_name")
+      .optional()
+      .isLength({ min: 1, max: 100 })
+      .withMessage("Last name must be between 1 and 100 characters")
+      .matches(/^[a-zA-Z\s\-']+$/)
+      .withMessage(
+        "Last name can only contain letters, spaces, hyphens, or apostrophes"
+      ),
+  ];
+};
+
+const validateUserId = () => {
+  return [
+    body("user_id")
+      .notEmpty()
+      .withMessage("User ID is required")
+      .isInt({ min: 1 })
+      .withMessage("User ID must be an integer"),
   ];
 };
 
@@ -233,4 +275,6 @@ export {
   categoryUpdateValidationRules,
   tagValidationRules,
   tagUpdateValidationRules,
+  profileUpdateValidationRules,
+  validateUserId,
 };
