@@ -1,5 +1,6 @@
+import bcrypt from "bcrypt";
+
 export default (sequelize, DataTypes) => {
-  // Define the `User` model with its attributes and validation rules.
   const Users = sequelize.define(
     "users",
     {
@@ -13,6 +14,10 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.STRING(100),
         allowNull: false,
         unique: true,
+        validate: {
+          len: [1, 100],
+          is: /^[a-zA-Z0-9._-]+$/,
+        },
       },
       email: {
         type: DataTypes.STRING(100),
@@ -23,7 +28,7 @@ export default (sequelize, DataTypes) => {
         },
       },
       password: {
-        type: DataTypes.STRING(255),
+        type: DataTypes.STRING,
         allowNull: false,
       },
       role: {
@@ -31,15 +36,55 @@ export default (sequelize, DataTypes) => {
         defaultValue: "subscriber",
         allowNull: false,
       },
-      created_at: {
-        type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW,
-        allowNull: false,
+      first_name: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+        validate: {
+          len: [1, 100],
+          is: /^[a-zA-Z\s\-']+$/,
+        },
+      },
+      last_name: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+        validate: {
+          len: [1, 100],
+          is: /^[a-zA-Z\s\-']+$/,
+        },
+      },
+      bio: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+        validate: {
+          len: [0, 1000],
+        },
+      },
+      profile_picture_url: {
+        type: DataTypes.STRING(500),
+        allowNull: true,
+        validate: {
+          isUrl: true,
+          len: [0, 500],
+        },
       },
     },
     {
-      timestamps: false,
+      timestamps: true,
       tableName: "users",
+      hooks: {
+        beforeCreate: async (user) => {
+          if (user.password) {
+            const salt = await bcrypt.genSalt(10);
+            user.password = await bcrypt.hash(user.password, salt);
+          }
+        },
+        beforeUpdate: async (user) => {
+          if (user.changed("password")) {
+            const salt = await bcrypt.genSalt(10);
+            user.password = await bcrypt.hash(user.password, salt);
+          }
+        },
+      },
     }
   );
 

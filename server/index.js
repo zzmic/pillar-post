@@ -19,8 +19,8 @@ const dbConfig = config[process.env.NODE_ENV || "development"];
 
 // Create an instance of an Express.js application.
 const app = express();
-// Use the port from either the environment variable or default to 3001.
-const PORT = process.env.PORT || 3001;
+// Use the port from either the environment variable or default to 8080.
+const PORT = process.env.PORT || 8080;
 
 // Create a new PostgreSQL connection pool.
 const sessionPgPool = new Pool({
@@ -88,7 +88,7 @@ app.use("/api", apiRoutes);
 // This route responds with a message indicating the server is running.
 app.get("/", (req, res) => {
   res.json({
-    message: "Server is running successfully!",
+    message: "Server is running on http://localhost:8080!",
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || "development",
   });

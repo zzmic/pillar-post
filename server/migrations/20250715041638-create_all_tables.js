@@ -3,16 +3,11 @@
 /** @type {import('sequelize-cli').Migration} */
 export default {
   async up(queryInterface, Sequelize) {
-    /**
-     * Add altering commands here.
-     *
-     * Example:
-     * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
-     */
-    // Import `DataTypes` from `Sequelize` to define column types.
     const { DataTypes } = Sequelize;
 
-    // Create the users table with the specified columns and constraints.
+    /**
+     * Create the users table with the specified columns and constraints.
+     */
     await queryInterface.createTable("users", {
       user_id: {
         type: DataTypes.INTEGER,
@@ -49,7 +44,9 @@ export default {
       },
     });
 
-    // Create the posts table with the specified columns and constraints.
+    /**
+     * Create the posts table with the specified columns and constraints.
+     */
     await queryInterface.createTable("posts", {
       post_id: {
         type: DataTypes.INTEGER,
@@ -86,7 +83,9 @@ export default {
       },
     });
 
-    // Create the comments table with the specified columns and constraints.
+    /**
+     * Create the comments table with the specified columns and constraints.
+     */
     await queryInterface.createTable("comments", {
       comment_id: {
         type: DataTypes.INTEGER,
@@ -122,7 +121,9 @@ export default {
       },
     });
 
-    // Create the categories table with the specified columns and constraints.
+    /**
+     * Create the categories table with the specified columns and constraints.
+     */
     await queryInterface.createTable("categories", {
       category_id: {
         type: DataTypes.INTEGER,
@@ -141,7 +142,9 @@ export default {
       },
     });
 
-    // Create the tags table with the specified columns and constraints.
+    /**
+     * Create the tags table with the specified columns and constraints.
+     */
     await queryInterface.createTable("tags", {
       tag_id: {
         type: DataTypes.INTEGER,
@@ -160,7 +163,9 @@ export default {
       },
     });
 
-    // Create the "post_categories" join table for many-to-many relationship between posts and categories.
+    /**
+     * Create the "post_categories" join table for many-to-many relationship between posts and categories.
+     */
     await queryInterface.createTable("post_categories", {
       post_id: {
         type: Sequelize.INTEGER,
@@ -190,7 +195,9 @@ export default {
       },
     });
 
-    // Create the "post_tags" join table for many-to-many relationship between posts and tags.
+    /**
+     * Create the "post_tags" join table for many-to-many relationship between posts and tags.
+     */
     await queryInterface.createTable("post_tags", {
       post_id: {
         type: Sequelize.INTEGER,
@@ -223,12 +230,8 @@ export default {
 
   async down(queryInterface) {
     /**
-     * Add reverting commands here.
-     *
-     * Example:
-     * await queryInterface.dropTable('users');
+     * Drop the tables in reverse order of creation to maintain foreign key constraints.
      */
-    // Drop the tables in reverse order of creation to maintain foreign key constraints.
     await queryInterface.dropTable("post_tags");
     await queryInterface.dropTable("post_categories");
     await queryInterface.dropTable("tags");
