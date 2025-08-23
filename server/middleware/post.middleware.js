@@ -11,14 +11,14 @@ const checkPostOwnership = async (req, res, next) => {
     if (!user_id) {
       return res.status(401).json({
         status: "fail",
-        message: "Unauthorized access: User not authenticated.",
+        message: "Unauthorized access: User not authenticated",
       });
     }
     const post = await Posts.findByPk(post_id);
     if (!post) {
       return res.status(404).json({
         status: "fail",
-        message: "Post not found.",
+        message: "Post not found",
       });
     }
     if (
@@ -27,7 +27,7 @@ const checkPostOwnership = async (req, res, next) => {
     ) {
       return res.status(403).json({
         status: "fail",
-        message: "Access denied: You do not own this post.",
+        message: "Access denied: You do not own this post",
       });
     }
     res.post = post;
@@ -37,12 +37,12 @@ const checkPostOwnership = async (req, res, next) => {
     if (error.name === "CastError") {
       return res.status(400).json({
         status: "fail",
-        message: "Invalid post ID format.",
+        message: "Invalid post ID format",
       });
     }
     res.status(500).json({
       status: "error",
-      message: "Internal server error.",
+      message: "Internal server error",
     });
   }
 };
@@ -55,7 +55,7 @@ const checkPostExists = async (req, res, next) => {
     if (!post) {
       return res.status(404).json({
         status: "fail",
-        message: "Post not found.",
+        message: "Post not found",
       });
     }
     res.post = post;
@@ -65,12 +65,12 @@ const checkPostExists = async (req, res, next) => {
     if (error.name === "CastError") {
       return res.status(400).json({
         status: "fail",
-        message: "Invalid post ID format.",
+        message: "Invalid post ID format",
       });
     }
     res.status(500).json({
       status: "error",
-      message: "Internal server error.",
+      message: "Internal server error",
     });
   }
 };
@@ -98,7 +98,7 @@ const generatePostSlugIfNeeded = async (req, res, next) => {
     if (!title) {
       return res.status(400).json({
         status: "fail",
-        message: "Title is required to generate a slug.",
+        message: "Title is required to generate a slug",
       });
     }
     if (!slug) {
@@ -134,7 +134,7 @@ const generatePostSlugIfNeeded = async (req, res, next) => {
     console.error("Error in generatePostSlugIfNeeded middleware:", error);
     res.status(500).json({
       status: "error",
-      message: "Internal server error.",
+      message: "Internal server error",
     });
   }
 };
@@ -167,7 +167,7 @@ const sanitizePostContent = (req, res, next) => {
     console.error("Error in sanitizePostContent middleware:", error);
     res.status(500).json({
       status: "error",
-      message: "Internal server error.",
+      message: "Internal server error",
     });
   }
 };

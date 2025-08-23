@@ -20,7 +20,7 @@ const createTag = async (req, res) => {
     if (existingTag) {
       return res.status(400).json({
         status: "fail",
-        message: "Tag with this name or slug already exists.",
+        message: "Tag with this name or slug already exists",
       });
     }
 
@@ -199,7 +199,7 @@ const updateTag = async (req, res) => {
       if (existingTag) {
         return res.status(400).json({
           status: "fail",
-          message: "Tag with this name or slug already exists.",
+          message: "Tag with this name or slug already exists",
         });
       }
     }

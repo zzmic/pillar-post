@@ -1,7 +1,7 @@
 import { body, validationResult } from "express-validator";
 import sanitizeHtml from "sanitize-html";
 
-// Middleware function to validate request data using `express-validator`.
+// Middleware function to validate request data.
 const validate = (req, res, next) => {
   const errors = validationResult(req);
   if (errors.isEmpty()) {
@@ -227,8 +227,7 @@ const profileUpdateValidationRules = () => {
     body("bio")
       .optional()
       .isLength({ max: 1000 })
-      .withMessage("Bio must not exceed 1000 characters")
-      .customSanitizer((value) => sanitizeHtml(value)),
+      .withMessage("Bio must not exceed 1000 characters"),
     body("profile_picture_url")
       .optional()
       .isURL()
@@ -254,16 +253,6 @@ const profileUpdateValidationRules = () => {
   ];
 };
 
-const validateUserId = () => {
-  return [
-    body("user_id")
-      .notEmpty()
-      .withMessage("User ID is required")
-      .isInt({ min: 1 })
-      .withMessage("User ID must be an integer"),
-  ];
-};
-
 export {
   validate,
   signUpValidationRules,
@@ -276,5 +265,4 @@ export {
   tagValidationRules,
   tagUpdateValidationRules,
   profileUpdateValidationRules,
-  validateUserId,
 };

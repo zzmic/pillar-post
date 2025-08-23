@@ -1,19 +1,17 @@
 import db from "../models/index.js";
 const Category = db.categories;
 
-// Check if a category exists by ID
+// Middleware function to check if a category exists by ID.
 const checkCategoryExistsByID = async (req, res, next) => {
   try {
     const category_id = req.params.category_id;
     const category = await Category.findByPk(category_id);
-
     if (!category) {
       return res.status(404).json({
         status: "fail",
         message: "Category not found",
       });
     }
-
     req.category = category;
     next();
   } catch (err) {
@@ -21,26 +19,24 @@ const checkCategoryExistsByID = async (req, res, next) => {
     if (err.name === "CastError") {
       return res.status(400).json({
         status: "fail",
-        message: "Invalid category ID format.",
+        message: "Invalid category ID format",
       });
     }
     next(err);
   }
 };
 
-// Check if a category exists by slug
+// Middleware function to check if a category exists by slug.
 const checkCategoryExistsBySlug = async (req, res, next) => {
   try {
     const slug = req.params.slug;
     const category = await Category.findOne({ where: { slug } });
-
     if (!category) {
       return res.status(404).json({
         status: "fail",
         message: "Category not found",
       });
     }
-
     req.category = category;
     next();
   } catch (err) {
@@ -49,34 +45,30 @@ const checkCategoryExistsBySlug = async (req, res, next) => {
   }
 };
 
-// Check category management permissions (Admin only)
+// Middleware function to check category management permissions (Admin only).
 const checkCategoryPermissions = (req, res, next) => {
   const userRole = req.user ? req.user.role : null;
-
   if (!req.user) {
     return res.status(401).json({
       status: "fail",
-      message: "Authentication required: Please sign in.",
+      message: "Authentication required: Please sign in",
     });
   }
-
   if (userRole !== "admin") {
     return res.status(403).json({
       status: "fail",
       message:
-        "Access denied: Administrator privileges required for category management.",
+        "Access denied: Administrator privileges required for category management",
     });
   }
 
   next();
 };
 
-// Check for category dependencies before deletion
+// Middleware function to check for category dependencies before deletion.
 const checkCategoryDependencies = async (req, res, next) => {
   try {
     const category = req.category;
-
-    // Check if category has associated posts
     const postCount = await db.posts.count({
       include: [
         {
@@ -86,7 +78,6 @@ const checkCategoryDependencies = async (req, res, next) => {
         },
       ],
     });
-
     if (postCount > 0) {
       return res.status(409).json({
         status: "fail",
@@ -96,13 +87,12 @@ const checkCategoryDependencies = async (req, res, next) => {
         },
       });
     }
-
     next();
   } catch (error) {
     console.error("Error checking category dependencies:", error);
     res.status(500).json({
       status: "error",
-      message: "Internal server error while checking category dependencies.",
+      message: "Internal server error while checking category dependencies",
     });
   }
 };

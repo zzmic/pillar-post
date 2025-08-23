@@ -12,13 +12,10 @@ import userRoutes from "./user.routes.js";
 // Mount the individual routers onto the main API router.
 router.use("/auth", authRoutes); // Authentication routes (signup, login, logout).
 router.use("/posts", postRoutes); // Post-related routes (create post, get posts, update post, delete post).
-router.use("/comments", commentRoutes); // Comment-related routes (create comment, get comments, update comment, delete comment).
-router.use("/categories", categoryRoutes); // Category-related routes (create category, get categories, update category, delete category).
-router.use("/tags", tagRoutes); // Tag-related routes (create tag, get tags, update tag, delete tag).
-router.use("/users", userRoutes); // User-related routes (get user profile, update user, delete user).
-
-// Admin-specific routes (manage users, manage content, system administration).
-// router.use("/admin", adminRoutes);
+router.use("/comments", commentRoutes); // Comment-related routes (create comments, get comments, update comments, delete comments).
+router.use("/categories", categoryRoutes); // Category-related routes (create categories, get categories, update categories, delete categories).
+router.use("/tags", tagRoutes); // Tag-related routes (create tags, get tags, update tags, delete tags).
+router.use("/users", userRoutes); // User-related routes (get and update user profiles).
 
 /* Utility routes for testing and development. */
 // Test route to verify backend connectivity.

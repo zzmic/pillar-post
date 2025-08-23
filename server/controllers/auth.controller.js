@@ -15,7 +15,7 @@ const signUp = async (req, res, next) => {
     if (userByUsername) {
       return res.status(409).json({
         status: "fail",
-        message: "Username has already been taken.",
+        message: "Username has already been taken",
       });
     }
 
@@ -23,7 +23,7 @@ const signUp = async (req, res, next) => {
     if (userByEmail) {
       return res.status(409).json({
         status: "fail",
-        message: "Email has already been taken.",
+        message: "Email has already been taken",
       });
     }
 
@@ -38,7 +38,7 @@ const signUp = async (req, res, next) => {
 
     res.status(201).json({
       status: "success",
-      message: "User registered successfully.",
+      message: "User registered successfully",
       data: {
         user: {
           user_id: newUser.user_id,
@@ -72,7 +72,7 @@ const logIn = async (req, res, next) => {
     if (!user) {
       return res.status(401).json({
         status: "fail",
-        message: "Invalid credentials: user not found.",
+        message: "Invalid credentials: user not found",
       });
     }
 
@@ -80,7 +80,7 @@ const logIn = async (req, res, next) => {
     if (!isMatch) {
       return res.status(401).json({
         status: "fail",
-        message: "Invalid credentials: password is incorrect.",
+        message: "Invalid credentials: password is incorrect",
       });
     }
 
@@ -90,7 +90,7 @@ const logIn = async (req, res, next) => {
 
     res.status(200).json({
       status: "success",
-      message: "Logged in successfully.",
+      message: "Logged in successfully",
       data: {
         user: {
           user_id: user.user_id,

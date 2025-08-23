@@ -4,10 +4,11 @@ import {
   updateUserProfile,
 } from "../controllers/user.controller.js";
 import { isAuthenticated } from "../middleware/auth.middleware.js";
+import { profileUpdateValidationRules } from "../middleware/validation.middleware.js";
 import {
-  profileUpdateValidationRules,
+  canUpdateProfile,
   validateUserId,
-} from "../middleware/validation.middleware.js";
+} from "../middleware/user.middleware.js";
 
 const router = express.Router();
 
@@ -18,7 +19,8 @@ router.get("/:id/profile", validateUserId(), getUserProfile);
 router.put(
   "/:id/profile",
   isAuthenticated,
-  validateUserId(),
+  validateUserId,
+  canUpdateProfile,
   profileUpdateValidationRules(),
   updateUserProfile
 );

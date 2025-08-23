@@ -8,29 +8,31 @@ const Users = db.users;
  */
 const getUserProfile = async (req, res, next) => {
   try {
-    const user_id = req.user.user_id;
+    const user_id = parseInt(req.params.id);
 
-    if (!user_id || isNaN(parseInt(user_id))) {
+    if (!user_id || isNaN(user_id)) {
       return res.status(400).json({
         status: "fail",
-        message: "Invalid user ID provided.",
+        message: "Invalid user ID provided",
       });
     }
 
     const user = await Users.findByPk(user_id, {
-      attributes: { exclude: ["password"] },
+      attributes: {
+        exclude: ["password"],
+      },
     });
 
     if (!user) {
       return res.status(404).json({
         status: "fail",
-        message: "User not found.",
+        message: "User not found",
       });
     }
 
     res.status(200).json({
       status: "success",
-      message: "User profile fetched successfully.",
+      message: "User profile fetched successfully",
       data: {
         user,
       },
@@ -48,20 +50,20 @@ const getUserProfile = async (req, res, next) => {
  */
 const updateUserProfile = async (req, res, next) => {
   try {
-    const user_id = req.user.user_id;
-    const authenticated_user_id = req.user.user_id;
+    const user_id = parseInt(req.params.id);
+    const authenticated_user_id = req.session.user_id;
 
-    if (!user_id || isNaN(parseInt(user_id))) {
+    if (!user_id || isNaN(user_id)) {
       return res.status(400).json({
         status: "fail",
-        message: "Invalid user ID provided.",
+        message: "Invalid user ID provided",
       });
     }
 
-    if (parseInt(user_id) !== authenticated_user_id) {
+    if (user_id !== authenticated_user_id) {
       return res.status(403).json({
         status: "fail",
-        message: "You can only update your own profile.",
+        message: "Access denied. You can only update your own profile",
       });
     }
 
@@ -76,9 +78,12 @@ const updateUserProfile = async (req, res, next) => {
         },
       });
       if (existingUser) {
-        return res.status(409).json({
+        return res.status(422).json({
           status: "fail",
-          message: "Username has already been taken.",
+          message: "Validation errors",
+          errors: {
+            username: ["Username is already taken"],
+          },
         });
       }
     }
@@ -91,9 +96,12 @@ const updateUserProfile = async (req, res, next) => {
         },
       });
       if (existingUser) {
-        return res.status(409).json({
+        return res.status(422).json({
           status: "fail",
-          message: "Email has already been taken.",
+          message: "Validation errors",
+          errors: {
+            email: ["Email is already taken"],
+          },
         });
       }
     }
@@ -102,7 +110,7 @@ const updateUserProfile = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({
         status: "fail",
-        message: "User not found.",
+        message: "User not found",
       });
     }
 
@@ -123,22 +131,7 @@ const updateUserProfile = async (req, res, next) => {
 
     res.status(200).json({
       status: "success",
-      message: "User profile fetched successfully.",
-      data: {
-        user: {
-          last_name: updatedUser.last_name,
-          bio: updatedUser.bio,
-          profile_picture_url: updatedUser.profile_picture_url,
-          role: updatedUser.role,
-          created_at: updatedUser.created_at,
-          updated_at: updatedUser.updated_at,
-        },
-      },
-    });
-
-    res.status(200).json({
-      status: "success",
-      message: "User profile updated successfully.",
+      message: "Profile updated successfully",
       data: {
         user: updatedUser,
       },

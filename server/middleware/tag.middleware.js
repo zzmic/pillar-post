@@ -121,7 +121,7 @@ const checkTagDependencies = async (req, res, next) => {
       return res.status(400).json({
         status: "fail",
         message:
-          "Cannot delete tag that is associated with posts. Remove tag from all posts first.",
+          "Cannot delete tag that is associated with posts. Remove tag from all posts first",
       });
     }
 

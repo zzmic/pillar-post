@@ -138,7 +138,7 @@ const getPostById = async (req, res, next) => {
         return res.status(403).json({
           status: "fail",
           message:
-            "Access denied: You do not have permission to view this post.",
+            "Access denied: You do not have permission to view this post",
         });
       }
     }
