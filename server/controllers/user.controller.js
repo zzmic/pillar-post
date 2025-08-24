@@ -60,7 +60,7 @@ const updateUserProfile = async (req, res, next) => {
       });
     }
 
-    if (user_id !== authenticated_user_id) {
+    if (req.session.role !== "admin" && user_id !== authenticated_user_id) {
       return res.status(403).json({
         status: "fail",
         message: "Access denied. You can only update your own profile",

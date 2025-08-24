@@ -23,11 +23,18 @@ if (dbConfig.use_env_variable) {
     dbConfig.database,
     dbConfig.username,
     dbConfig.password,
-    dbConfig
+    {
+      ...dbConfig,
+      define: {
+        timestamps: true,
+        underscored: true, // Use snake_case for column names.
+        underscoredAll: true, // Use snake_case for all identifiers.
+      },
+    }
   );
 }
 
-// Initialize models function
+// Initialize models function.
 async function initializeModels() {
   // Read all files in the current directory, excluding the current file and test files, and import them as models.
   const files = fs.readdirSync(__dirname).filter((file) => {
@@ -75,7 +82,7 @@ db.posts.belongsTo(db.users, {
 // Users <-> Comments (one-to-many).
 db.users.hasMany(db.comments, {
   foreignKey: "user_id",
-  onDelete: "SET NULL", // Matches your schema
+  onDelete: "SET NULL",
   as: "comments",
 });
 db.comments.belongsTo(db.users, {
@@ -86,7 +93,7 @@ db.comments.belongsTo(db.users, {
 // Posts <-> Comments (one-to-many).
 db.posts.hasMany(db.comments, {
   foreignKey: "post_id",
-  onDelete: "CASCADE", // Matches your schema
+  onDelete: "CASCADE",
   as: "comments",
 });
 db.comments.belongsTo(db.posts, {

@@ -33,6 +33,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
+    "@types/bcryptjs": "^2.4.6",
     "eslint": "^9.33.0",
     "globals": "^16.3.0",
     "sequelize-cli": "^6.6.3"

@@ -11,7 +11,9 @@ const signUp = async (req, res, next) => {
   try {
     const { username, email, password, role } = req.body;
 
-    const userByUsername = await Users.findOne({ where: { username } });
+    const userByUsername = await Users.findOne({
+      where: { username },
+    });
     if (userByUsername) {
       return res.status(409).json({
         status: "fail",

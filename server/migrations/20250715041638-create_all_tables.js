@@ -185,6 +185,7 @@ export default {
         },
         onDelete: "CASCADE",
       },
+      // Later alter to `created_at` and `updated_at`.
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
@@ -217,6 +218,7 @@ export default {
         },
         onDelete: "CASCADE",
       },
+      // Later alter to `created_at` and `updated_at`.
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

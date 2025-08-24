@@ -26,3 +26,7 @@ Thumbs.db
 # Temporary files.
 tmp/
 *.tmp
+
+# Cookies.
+server/cookies.txt
+server/admin_cookies.txt

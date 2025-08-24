@@ -1,5 +1,5 @@
 // Middleware function to check if the user is authenticated.
-const isAuthenticated = (req, next) => {
+const isAuthenticated = (req, res, next) => {
   if (req.session && req.session.user_id) {
     req.user = {
       user_id: req.session.user_id,
@@ -14,7 +14,7 @@ const isAuthenticated = (req, next) => {
 };
 
 // Middleware function to check if the user has an admin role.
-const isAdmin = (req, next) => {
+const isAdmin = (req, res, next) => {
   if (req.user && req.user.role === "admin") {
     next();
   } else {
@@ -25,7 +25,7 @@ const isAdmin = (req, next) => {
 };
 
 // Middleware function to check if the user has an author or admin role.
-const isAuthor = (req, next) => {
+const isAuthor = (req, res, next) => {
   if ((req.user && req.user.role === "author") || req.user.role === "admin") {
     next();
   } else {
@@ -36,7 +36,7 @@ const isAuthor = (req, next) => {
 };
 
 // Middleware function to check if the user has a subscriber role.
-const isSubscriber = (req, next) => {
+const isSubscriber = (req, res, next) => {
   if (
     (req.user && req.user.role === "subscriber") ||
     req.user.role === "author" ||
