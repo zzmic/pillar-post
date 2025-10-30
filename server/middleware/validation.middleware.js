@@ -30,7 +30,7 @@ const signUpValidationRules = () => {
       .withMessage("Username must be between 1 and 100 characters")
       .matches(/^[a-zA-Z0-9._-]+$/)
       .withMessage(
-        "Username can only contain letters, numbers, dots, underscores, or hyphens"
+        "Username can only contain letters, numbers, dots, underscores, or hyphens",
       ),
     body("email")
       .isEmail()
@@ -40,10 +40,10 @@ const signUpValidationRules = () => {
       .isLength({ min: 8 })
       .withMessage("Password must be at least 8 characters long")
       .matches(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
       )
       .withMessage(
-        "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
+        "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character",
       ),
   ];
 };
@@ -74,7 +74,7 @@ const postValidationRules = () => {
       .withMessage("Slug must be between 1 and 100 characters")
       .matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
       .withMessage(
-        "Slug must contain only lowercase letters, numbers, and hyphens"
+        "Slug must contain only lowercase letters, numbers, and hyphens",
       ),
     body("status")
       .notEmpty()
@@ -118,7 +118,7 @@ const commentValidationRules = (includeParentId = true) => {
       body("parentCommentId")
         .optional()
         .isInt({ min: 1 })
-        .withMessage("Parent comment ID must be a positive integer")
+        .withMessage("Parent comment ID must be a positive integer"),
     );
   }
 
@@ -150,7 +150,7 @@ const categoryValidationRules = () => {
       .withMessage("Slug must be between 1 and 100 characters")
       .matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
       .withMessage(
-        "Slug must contain only lowercase letters, numbers, and hyphens"
+        "Slug must contain only lowercase letters, numbers, and hyphens",
       ),
   ];
 };
@@ -189,7 +189,7 @@ const tagValidationRules = () => {
       .withMessage("Slug must be between 1 and 100 characters")
       .matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
       .withMessage(
-        "Slug must contain only lowercase letters, numbers, and hyphens"
+        "Slug must contain only lowercase letters, numbers, and hyphens",
       ),
   ];
 };
@@ -221,7 +221,7 @@ const profileUpdateValidationRules = () => {
       .withMessage("Username must be between 1 and 100 characters")
       .matches(/^[a-zA-Z0-9._-]+$/)
       .withMessage(
-        "Username can only contain letters, numbers, dots, underscores, or hyphens"
+        "Username can only contain letters, numbers, dots, underscores, or hyphens",
       ),
     body("email").optional().isEmail().withMessage("Invalid email format"),
     body("bio")
@@ -240,7 +240,7 @@ const profileUpdateValidationRules = () => {
       .withMessage("First name must be between 1 and 100 characters")
       .matches(/^[a-zA-Z\s\-']+$/)
       .withMessage(
-        "First name can only contain letters, spaces, hyphens, or apostrophes"
+        "First name can only contain letters, spaces, hyphens, or apostrophes",
       ),
     body("last_name")
       .optional()
@@ -248,7 +248,7 @@ const profileUpdateValidationRules = () => {
       .withMessage("Last name must be between 1 and 100 characters")
       .matches(/^[a-zA-Z\s\-']+$/)
       .withMessage(
-        "Last name can only contain letters, spaces, hyphens, or apostrophes"
+        "Last name can only contain letters, spaces, hyphens, or apostrophes",
       ),
   ];
 };

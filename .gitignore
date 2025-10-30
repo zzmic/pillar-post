@@ -2,13 +2,14 @@
 .pnpm-debug.log*
 .env
 
-# Client (React) specific.
-client/build/
+# Frontend specific.
 client/.env
+client/build/
 
-# Server (Node.js/Express.js) specific.
-server/node_modules/
+# Backend specific.
 server/.env
+server/node_modules/
+server/dist/
 
 # Logs.
 *.log

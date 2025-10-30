@@ -31,7 +31,7 @@ router.post(
   validate,
   validateSlugFormat,
   generateCategorySlugIfNeeded,
-  createCategory
+  createCategory,
 );
 
 // PUT /api/categories/:category_id - Update an existing category (admin only).
@@ -43,7 +43,7 @@ router.put(
   categoryUpdateValidationRules(),
   validate,
   generateCategorySlugIfNeeded,
-  updateCategory
+  updateCategory,
 );
 
 // DELETE /api/categories/:category_id - Delete a category (admin only).
@@ -53,7 +53,7 @@ router.delete(
   checkCategoryPermissions,
   checkCategoryExistsByID,
   checkCategoryDependencies,
-  deleteCategory
+  deleteCategory,
 );
 
 export default router;

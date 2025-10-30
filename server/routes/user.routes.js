@@ -26,7 +26,7 @@ router.put(
   canUpdateProfile,
   profileUpdateValidationRules(),
   validate,
-  updateUserProfile
+  updateUserProfile,
 );
 
 export default router;

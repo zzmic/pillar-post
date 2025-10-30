@@ -45,7 +45,7 @@ const isSubscriber = (req, res, next) => {
     next();
   } else {
     const error = new Error(
-      "Access denied. Subscribers, authors, or admins only"
+      "Access denied. Subscribers, authors, or admins only",
     );
     error.statusCode = 403;
     next(error);

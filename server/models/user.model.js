@@ -68,7 +68,7 @@ export default (sequelize, DataTypes) => {
     },
     {
       tableName: "users",
-    }
+    },
   );
 
   return Users;

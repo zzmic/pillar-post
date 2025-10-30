@@ -44,7 +44,7 @@ export default (sequelize, DataTypes) => {
           post.updated_at = new Date();
         },
       },
-    }
+    },
   );
 
   return Posts;

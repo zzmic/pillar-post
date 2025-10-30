@@ -30,7 +30,7 @@ if (dbConfig.use_env_variable) {
         underscored: true, // Use snake_case for column names.
         underscoredAll: true, // Use snake_case for all identifiers.
       },
-    }
+    },
   );
 }
 

@@ -38,7 +38,7 @@ router.post(
   postValidationRules(),
   validate,
   generatePostSlugIfNeeded,
-  createPost
+  createPost,
 );
 
 // GET /api/posts - Get all posts.
@@ -55,7 +55,7 @@ router.put(
   checkPostOwnership,
   postValidationRules(),
   validate,
-  updatePost
+  updatePost,
 );
 
 // DELETE /api/posts/:post_id - Delete a post.
@@ -64,7 +64,7 @@ router.delete(
   isAuthenticated,
   checkPostExists,
   checkPostOwnership,
-  deletePost
+  deletePost,
 );
 
 export default router;

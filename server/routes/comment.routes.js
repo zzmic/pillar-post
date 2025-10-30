@@ -32,7 +32,7 @@ router.post(
   isAuthenticated,
   commentValidationRules(),
   validate,
-  createComment
+  createComment,
 );
 
 // GET /api/comments/posts/:post_id - Get all comments for a post.
@@ -44,7 +44,7 @@ router.put(
   isAuthenticated,
   commentUpdateValidationRules(),
   validate,
-  updateComment
+  updateComment,
 );
 
 // DELETE /api/comments/:comment_id - Delete a comment.

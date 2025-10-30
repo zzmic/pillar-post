@@ -44,7 +44,7 @@ router.post(
   validate,
   validateSlugFormat,
   generateTagSlugIfNeeded,
-  createTag
+  createTag,
 );
 
 // PUT /api/tags/:tag_id - Update an existing tag (admin only).
@@ -56,7 +56,7 @@ router.put(
   tagUpdateValidationRules(),
   validate,
   generateTagSlugIfNeeded,
-  updateTag
+  updateTag,
 );
 
 // DELETE /api/tags/:tag_id - Delete a tag (admin only).
@@ -66,7 +66,7 @@ router.delete(
   checkTagPermissions,
   checkTagExistsByID,
   checkTagDependencies,
-  deleteTag
+  deleteTag,
 );
 
 export default router;

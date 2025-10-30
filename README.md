@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a blog platform powered by the PERN stack, combining PostgreSQL, Express.js, React, and Node.js. It provides a secure and intuitive environment for content creation and management, with a RESTful API on the backend that guarantees data integrity and a dynamic React frontend (under development) that supports rich-text editing, interactive commenting, and dynamic content rendering.
+This blog platform is powered by the PERN stack, combining PostgreSQL, Express.js, React, and Node.js. It provides a secure and intuitive environment for content creation and management, with a RESTful API on the backend that guarantees data integrity and a dynamic React frontend (under development) that supports rich-text editing, interactive commenting, and dynamic content rendering.
 
 Content is transformed into a structured blog ecosystem through a comprehensive, multi-layered architecture:
 

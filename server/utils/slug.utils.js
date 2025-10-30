@@ -5,7 +5,7 @@ const Posts = db.posts;
 const generateSlug = (title) => {
   if (!title || typeof title !== "string") {
     throw new Error(
-      "Invalid title provided for slug generation: it must be a non-empty string."
+      "Invalid title provided for slug generation: it must be a non-empty string.",
     );
   }
   return title
@@ -22,7 +22,7 @@ const generateSlug = (title) => {
 const ensureUniquePostSlug = async (slug, postId = null) => {
   if (!slug || typeof slug !== "string") {
     throw new Error(
-      "Invalid slug provided for uniqueness check: it must be a non-empty string."
+      "Invalid slug provided for uniqueness check: it must be a non-empty string.",
     );
   }
   let uniqueSlug = slug;
@@ -83,7 +83,7 @@ const ensureUniqueCategorySlug = async (baseSlug, excludeId = null) => {
 const ensureUniqueTagSlug = async (slug, tagId = null) => {
   if (!slug || typeof slug !== "string") {
     throw new Error(
-      "Invalid slug provided for uniqueness check: it must be a non-empty string."
+      "Invalid slug provided for uniqueness check: it must be a non-empty string.",
     );
   }
   let uniqueSlug = slug;
