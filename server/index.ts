@@ -144,7 +144,7 @@ app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
   });
 });
 
-// Start the server, assuming migrations have been run and the database is ready.
+// Remember to run the database migrations before starting the server.
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
