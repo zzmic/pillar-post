@@ -8,7 +8,7 @@ import {
 } from "../middleware/validation.middleware.js";
 import {
   checkPostOwnership,
-  checkPostExists,
+  checkIfPostExistsByID,
   generatePostSlugIfNeeded,
 } from "../middleware/post.middleware.js";
 import {
@@ -45,13 +45,13 @@ router.post(
 router.get("/", getAllPosts);
 
 // GET /api/posts/:post_id - Get a single post.
-router.get("/:post_id", optionalAuth, checkPostExists, getPostById);
+router.get("/:post_id", optionalAuth, checkIfPostExistsByID, getPostById);
 
 // PUT /api/posts/:post_id - Update a post.
 router.put(
   "/:post_id",
   isAuthenticated,
-  checkPostExists,
+  checkIfPostExistsByID,
   checkPostOwnership,
   postValidationRules(),
   validate,
@@ -62,7 +62,7 @@ router.put(
 router.delete(
   "/:post_id",
   isAuthenticated,
-  checkPostExists,
+  checkIfPostExistsByID,
   checkPostOwnership,
   deletePost,
 );

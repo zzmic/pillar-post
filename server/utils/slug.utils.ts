@@ -234,10 +234,10 @@ export const generateCategorySlugIfNeeded: RequestHandler<
     req.body.slug = finalSlug;
     next();
   } catch (error) {
-    console.error("Error generating category slug:", error);
+    console.error("Error generating category slug if needed:", error);
     res.status(500).json({
       status: "error",
-      message: "Internal server error during slug generation.",
+      message: "Internal server error while generating category slug if needed",
     });
   }
 };
@@ -265,10 +265,10 @@ export const generateTagSlugIfNeeded: RequestHandler<
     req.body.slug = finalSlug;
     next();
   } catch (error) {
-    console.error("Error generating tag slug:", error);
+    console.error("Error generating tag slug if needed:", error);
     res.status(500).json({
       status: "error",
-      message: "Internal server error during slug generation.",
+      message: "Internal server error while generating tag slug if needed",
     });
   }
 };

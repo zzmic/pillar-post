@@ -8,9 +8,10 @@ import {
   categoryUpdateValidationRules,
 } from "../middleware/validation.middleware.js";
 import {
-  checkCategoryExistsByID,
+  checkIfCategoryExistsByID,
   checkCategoryPermissions,
   checkCategoryDependencies,
+  checkIfCategoryExistsBySlug,
 } from "../middleware/category.middleware.js";
 import {
   validateSlugFormat,
@@ -39,7 +40,8 @@ router.put(
   "/:category_id",
   isAuthenticated,
   checkCategoryPermissions,
-  checkCategoryExistsByID,
+  checkIfCategoryExistsByID,
+  checkIfCategoryExistsBySlug,
   categoryUpdateValidationRules(),
   validate,
   generateCategorySlugIfNeeded,
@@ -51,7 +53,8 @@ router.delete(
   "/:category_id",
   isAuthenticated,
   checkCategoryPermissions,
-  checkCategoryExistsByID,
+  checkIfCategoryExistsByID,
+  checkIfCategoryExistsBySlug,
   checkCategoryDependencies,
   deleteCategory,
 );

@@ -8,8 +8,8 @@ import {
   tagUpdateValidationRules,
 } from "../middleware/validation.middleware.js";
 import {
-  checkTagExistsByID,
-  checkTagExistsBySlug,
+  checkIfTagExistsByID,
+  checkIfTagExistsBySlug,
   checkTagPermissions,
   checkTagDependencies,
 } from "../middleware/tag.middleware.js";
@@ -30,10 +30,10 @@ import {
 router.get("/", getAllTags);
 
 // GET /api/tags/:tag_id - Get a specific tag by ID (public).
-router.get("/:tag_id", checkTagExistsByID, getTagByID);
+router.get("/:tag_id", checkIfTagExistsByID, getTagByID);
 
 // GET /api/tags/slug/:slug - Get a specific tag by slug (public).
-router.get("/slug/:slug", checkTagExistsBySlug, getTagBySlug);
+router.get("/slug/:slug", checkIfTagExistsBySlug, getTagBySlug);
 
 // POST /api/tags - Create a new tag (admin only).
 router.post(
@@ -52,7 +52,7 @@ router.put(
   "/:tag_id",
   isAuthenticated,
   checkTagPermissions,
-  checkTagExistsByID,
+  checkIfTagExistsByID,
   tagUpdateValidationRules(),
   validate,
   generateTagSlugIfNeeded,
@@ -64,7 +64,7 @@ router.delete(
   "/:tag_id",
   isAuthenticated,
   checkTagPermissions,
-  checkTagExistsByID,
+  checkIfTagExistsByID,
   checkTagDependencies,
   deleteTag,
 );

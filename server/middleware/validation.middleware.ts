@@ -1,29 +1,64 @@
-import { body, validationResult } from "express-validator";
+import type { NextFunction, Request, Response } from "express";
+import {
+  body,
+  validationResult,
+  type ValidationChain,
+  type ValidationError,
+} from "express-validator";
 import sanitizeHtml from "sanitize-html";
 
-// Middleware function to validate request data.
-const validate = (req, res, next) => {
-  const errors = validationResult(req);
-  if (errors.isEmpty()) {
-    return next();
-  }
-  const formattedErrors = {};
-  errors.array().forEach((err) => {
-    const fieldName = err.param || err.path || "unknown";
-    if (!formattedErrors[fieldName]) {
-      formattedErrors[fieldName] = [];
+type ErrorCollection = Record<string, string[]>;
+
+const collectValidationErrors = (
+  errors: ValidationError[],
+): ErrorCollection => {
+  const initial: ErrorCollection = {};
+
+  return errors.reduce((accumulator, error) => {
+    const fieldName =
+      ("param" in error &&
+      typeof error.param === "string" &&
+      error.param.length > 0
+        ? error.param
+        : null) ||
+      ("path" in error &&
+      typeof error.path === "string" &&
+      error.path.length > 0
+        ? error.path
+        : null) ||
+      "unknown";
+
+    if (!accumulator[fieldName]) {
+      accumulator[fieldName] = [];
     }
-    formattedErrors[fieldName].push(err.msg);
-  });
-  return res.status(422).json({
+
+    accumulator[fieldName].push(String(error.msg));
+    return accumulator;
+  }, initial);
+};
+
+export const validate = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void => {
+  const errors = validationResult(req);
+
+  if (errors.isEmpty()) {
+    next();
+    return;
+  }
+
+  const formattedErrors = collectValidationErrors(errors.array());
+
+  res.status(422).json({
     status: "fail",
     message: "Validation errors",
     errors: formattedErrors,
   });
 };
 
-// Middleware function to validate user sign-up data.
-const signUpValidationRules = () => {
+export const signUpValidationRules = (): ValidationChain[] => {
   return [
     body("username")
       .isLength({ min: 1, max: 100 })
@@ -48,16 +83,14 @@ const signUpValidationRules = () => {
   ];
 };
 
-// Middleware function to validate user log-in data.
-const logInValidationRules = () => {
+export const logInValidationRules = (): ValidationChain[] => {
   return [
     body("identifier").notEmpty().withMessage("Username or email is required"),
     body("password").notEmpty().withMessage("Password is required"),
   ];
 };
 
-// Middleware function to validate post data.
-const postValidationRules = () => {
+export const postValidationRules = (): ValidationChain[] => {
   return [
     body("title")
       .notEmpty()
@@ -67,7 +100,7 @@ const postValidationRules = () => {
     body("body")
       .notEmpty()
       .withMessage("Content is required")
-      .customSanitizer((value) => sanitizeHtml(value)),
+      .customSanitizer((value) => sanitizeHtml(String(value))),
     body("slug")
       .optional()
       .isLength({ min: 1, max: 100 })
@@ -84,15 +117,17 @@ const postValidationRules = () => {
   ];
 };
 
-const commentValidationRules = (includeParentId = true) => {
-  const rules = [
+export const commentValidationRules = (
+  includeParentId = true,
+): ValidationChain[] => {
+  const rules: ValidationChain[] = [
     body("commentBody")
       .notEmpty()
       .withMessage("Comment body is required")
       .isLength({ min: 1, max: 1000 })
       .withMessage("Comment must be between 1 and 1000 characters")
       .customSanitizer((value) => {
-        return sanitizeHtml(value, {
+        return sanitizeHtml(String(value), {
           allowedTags: [
             "p",
             "br",
@@ -113,6 +148,7 @@ const commentValidationRules = (includeParentId = true) => {
         });
       }),
   ];
+
   if (includeParentId) {
     rules.push(
       body("parentCommentId")
@@ -125,11 +161,11 @@ const commentValidationRules = (includeParentId = true) => {
   return rules;
 };
 
-// Function to validate comment updates (for convenience).
-const commentUpdateValidationRules = () => commentValidationRules(false);
+export const commentUpdateValidationRules = (): ValidationChain[] => {
+  return commentValidationRules(false);
+};
 
-// Middleware function to validate category data.
-const categoryValidationRules = () => {
+export const categoryValidationRules = (): ValidationChain[] => {
   return [
     body("name")
       .notEmpty()
@@ -155,8 +191,7 @@ const categoryValidationRules = () => {
   ];
 };
 
-// Middleware function to validate category update data (allowing partial updates).
-const categoryUpdateValidationRules = () => {
+export const categoryUpdateValidationRules = (): ValidationChain[] => {
   return [
     body("name")
       .optional()
@@ -173,8 +208,7 @@ const categoryUpdateValidationRules = () => {
   ];
 };
 
-// Middleware function to validate tag data.
-const tagValidationRules = () => {
+export const tagValidationRules = (): ValidationChain[] => {
   return [
     body("name")
       .notEmpty()
@@ -194,8 +228,7 @@ const tagValidationRules = () => {
   ];
 };
 
-// Middleware function to validate tag update data.
-const tagUpdateValidationRules = () => {
+export const tagUpdateValidationRules = (): ValidationChain[] => {
   return [
     body("name")
       .optional()
@@ -212,8 +245,7 @@ const tagUpdateValidationRules = () => {
   ];
 };
 
-// Middleware function to validate profile update data.
-const profileUpdateValidationRules = () => {
+export const profileUpdateValidationRules = (): ValidationChain[] => {
   return [
     body("username")
       .optional()
@@ -251,18 +283,4 @@ const profileUpdateValidationRules = () => {
         "Last name can only contain letters, spaces, hyphens, or apostrophes",
       ),
   ];
-};
-
-export {
-  validate,
-  signUpValidationRules,
-  logInValidationRules,
-  postValidationRules,
-  commentValidationRules,
-  commentUpdateValidationRules,
-  categoryValidationRules,
-  categoryUpdateValidationRules,
-  tagValidationRules,
-  tagUpdateValidationRules,
-  profileUpdateValidationRules,
 };

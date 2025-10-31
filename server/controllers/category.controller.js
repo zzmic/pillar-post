@@ -37,7 +37,7 @@ const createCategory = async (req, res) => {
 
     res.status(500).json({
       status: "error",
-      message: "Internal server error",
+      message: "Internal server error while creating category",
     });
   }
 };
@@ -78,7 +78,7 @@ const updateCategory = async (req, res) => {
 
     res.status(500).json({
       status: "error",
-      message: "Internal server error",
+      message: "Internal server error while updating category",
     });
   }
 };
@@ -102,7 +102,7 @@ const deleteCategory = async (req, res) => {
     console.error("Error deleting category:", error);
     res.status(500).json({
       status: "error",
-      message: "Internal server error",
+      message: "Internal server error while deleting category",
     });
   }
 };
