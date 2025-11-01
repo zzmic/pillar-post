@@ -1,27 +1,27 @@
-import express from "express";
-const router = express.Router();
+import { Router, type RequestHandler } from "express";
 
 import { isAuthenticated, isAuthor } from "../middleware/auth.middleware.js";
 import {
-  validate,
   postValidationRules,
+  validate,
 } from "../middleware/validation.middleware.js";
 import {
-  checkPostOwnership,
   checkIfPostExistsById,
+  checkPostOwnership,
   generatePostSlugIfNeeded,
 } from "../middleware/post.middleware.js";
 import {
   createPost,
+  deletePost,
   getAllPosts,
   getPostById,
   updatePost,
-  deletePost,
 } from "../controllers/post.controller.js";
 
-// Optional authentication middleware for public routes.
-const optionalAuth = (req, res, next) => {
-  if (req.session && req.session.user_id) {
+const router = Router();
+
+const optionalAuth: RequestHandler = (req, _res, next) => {
+  if (req.session?.user_id) {
     req.user = {
       user_id: req.session.user_id,
       role: req.session.role,
@@ -30,7 +30,6 @@ const optionalAuth = (req, res, next) => {
   next();
 };
 
-// POST /api/posts - Create a new post.
 router.post(
   "/",
   isAuthenticated,
@@ -41,13 +40,10 @@ router.post(
   createPost,
 );
 
-// GET /api/posts - Get all posts.
 router.get("/", getAllPosts);
 
-// GET /api/posts/:post_id - Get a single post.
 router.get("/:post_id", optionalAuth, checkIfPostExistsById, getPostById);
 
-// PUT /api/posts/:post_id - Update a post.
 router.put(
   "/:post_id",
   isAuthenticated,
@@ -58,7 +54,6 @@ router.put(
   updatePost,
 );
 
-// DELETE /api/posts/:post_id - Delete a post.
 router.delete(
   "/:post_id",
   isAuthenticated,

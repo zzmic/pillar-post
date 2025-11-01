@@ -1,29 +1,29 @@
-import express from "express";
-const router = express.Router();
+import { Router } from "express";
 
 import { isAuthenticated } from "../middleware/auth.middleware.js";
 import {
-  validate,
-  categoryValidationRules,
   categoryUpdateValidationRules,
+  categoryValidationRules,
+  validate,
 } from "../middleware/validation.middleware.js";
 import {
-  checkIfCategoryExistsById,
-  checkCategoryPermissions,
   checkCategoryDependencies,
+  checkCategoryPermissions,
+  checkIfCategoryExistsById,
   checkIfCategoryExistsBySlug,
 } from "../middleware/category.middleware.js";
 import {
-  validateSlugFormat,
   generateCategorySlugIfNeeded,
+  validateSlugFormat,
 } from "../utils/slug.utils.js";
 import {
   createCategory,
-  updateCategory,
   deleteCategory,
+  updateCategory,
 } from "../controllers/category.controller.js";
 
-// POST /api/categories - Create a new category (admin only).
+const router = Router();
+
 router.post(
   "/",
   isAuthenticated,
@@ -35,7 +35,6 @@ router.post(
   createCategory,
 );
 
-// PUT /api/categories/:category_id - Update an existing category (admin only).
 router.put(
   "/:category_id",
   isAuthenticated,
@@ -48,7 +47,6 @@ router.put(
   updateCategory,
 );
 
-// DELETE /api/categories/:category_id - Delete a category (admin only).
 router.delete(
   "/:category_id",
   isAuthenticated,

@@ -1,41 +1,38 @@
-import express from "express";
-const router = express.Router();
+import { Router } from "express";
 
 import { isAuthenticated } from "../middleware/auth.middleware.js";
 import {
-  validate,
-  tagValidationRules,
   tagUpdateValidationRules,
+  tagValidationRules,
+  validate,
 } from "../middleware/validation.middleware.js";
 import {
   checkIfTagExistsById,
   checkIfTagExistsBySlug,
-  checkTagPermissions,
   checkTagDependencies,
+  checkTagPermissions,
 } from "../middleware/tag.middleware.js";
 import {
-  validateSlugFormat,
   generateTagSlugIfNeeded,
+  validateSlugFormat,
 } from "../utils/slug.utils.js";
 import {
   createTag,
+  deleteTag,
   getAllTags,
   getTagByID,
   getTagBySlug,
   updateTag,
-  deleteTag,
 } from "../controllers/tag.controller.js";
 
-// GET /api/tags - Get all tags (public).
+const router = Router();
+
 router.get("/", getAllTags);
 
-// GET /api/tags/:tag_id - Get a specific tag by ID (public).
 router.get("/:tag_id", checkIfTagExistsById, getTagByID);
 
-// GET /api/tags/slug/:slug - Get a specific tag by slug (public).
 router.get("/slug/:slug", checkIfTagExistsBySlug, getTagBySlug);
 
-// POST /api/tags - Create a new tag (admin only).
 router.post(
   "/",
   isAuthenticated,
@@ -47,7 +44,6 @@ router.post(
   createTag,
 );
 
-// PUT /api/tags/:tag_id - Update an existing tag (admin only).
 router.put(
   "/:tag_id",
   isAuthenticated,
@@ -59,7 +55,6 @@ router.put(
   updateTag,
 );
 
-// DELETE /api/tags/:tag_id - Delete a tag (admin only).
 router.delete(
   "/:tag_id",
   isAuthenticated,

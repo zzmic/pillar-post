@@ -1,4 +1,6 @@
-import express from "express";
+import { Router } from "express";
+import type { ParamsDictionary } from "express-serve-static-core";
+
 import {
   getUserProfile,
   updateUserProfile,
@@ -13,13 +15,13 @@ import {
   validateUserId,
 } from "../middleware/user.middleware.js";
 
-const router = express.Router();
+const router = Router();
 
-// GET /api/users/:id/profile - Get user profile (public).
-router.get("/:id/profile", validateUserId, getUserProfile);
+type UserParams = ParamsDictionary & { id: string };
 
-// PUT /api/users/:id/profile - Update user profile (authenticated users only).
-router.put(
+router.get<UserParams>("/:id/profile", validateUserId, getUserProfile);
+
+router.put<UserParams>(
   "/:id/profile",
   isAuthenticated,
   validateUserId,
