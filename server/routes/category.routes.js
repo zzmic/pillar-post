@@ -8,7 +8,7 @@ import {
   categoryUpdateValidationRules,
 } from "../middleware/validation.middleware.js";
 import {
-  checkIfCategoryExistsByID,
+  checkIfCategoryExistsById,
   checkCategoryPermissions,
   checkCategoryDependencies,
   checkIfCategoryExistsBySlug,
@@ -40,7 +40,7 @@ router.put(
   "/:category_id",
   isAuthenticated,
   checkCategoryPermissions,
-  checkIfCategoryExistsByID,
+  checkIfCategoryExistsById,
   checkIfCategoryExistsBySlug,
   categoryUpdateValidationRules(),
   validate,
@@ -53,7 +53,7 @@ router.delete(
   "/:category_id",
   isAuthenticated,
   checkCategoryPermissions,
-  checkIfCategoryExistsByID,
+  checkIfCategoryExistsById,
   checkIfCategoryExistsBySlug,
   checkCategoryDependencies,
   deleteCategory,

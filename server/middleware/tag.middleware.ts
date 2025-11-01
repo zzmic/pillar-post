@@ -51,7 +51,7 @@ type TagRequest = Request & {
   tag?: TagAttributes;
 };
 
-export const checkIfTagExistsByID = async (
+export const checkIfTagExistsById = async (
   req: Request,
   res: Response,
   next: NextFunction,

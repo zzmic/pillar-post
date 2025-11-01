@@ -115,7 +115,7 @@ export const checkPostOwnership: RequestHandler<PostParams> = async (
   }
 };
 
-export const checkIfPostExistsByID: RequestHandler<PostParams> = async (
+export const checkIfPostExistsById: RequestHandler<PostParams> = async (
   req,
   res,
   next,

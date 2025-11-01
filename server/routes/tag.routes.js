@@ -8,7 +8,7 @@ import {
   tagUpdateValidationRules,
 } from "../middleware/validation.middleware.js";
 import {
-  checkIfTagExistsByID,
+  checkIfTagExistsById,
   checkIfTagExistsBySlug,
   checkTagPermissions,
   checkTagDependencies,
@@ -30,7 +30,7 @@ import {
 router.get("/", getAllTags);
 
 // GET /api/tags/:tag_id - Get a specific tag by ID (public).
-router.get("/:tag_id", checkIfTagExistsByID, getTagByID);
+router.get("/:tag_id", checkIfTagExistsById, getTagByID);
 
 // GET /api/tags/slug/:slug - Get a specific tag by slug (public).
 router.get("/slug/:slug", checkIfTagExistsBySlug, getTagBySlug);
@@ -52,7 +52,7 @@ router.put(
   "/:tag_id",
   isAuthenticated,
   checkTagPermissions,
-  checkIfTagExistsByID,
+  checkIfTagExistsById,
   tagUpdateValidationRules(),
   validate,
   generateTagSlugIfNeeded,
@@ -64,7 +64,7 @@ router.delete(
   "/:tag_id",
   isAuthenticated,
   checkTagPermissions,
-  checkIfTagExistsByID,
+  checkIfTagExistsById,
   checkTagDependencies,
   deleteTag,
 );

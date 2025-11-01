@@ -71,7 +71,7 @@ const findCategoryBySlug = async (
   return categoryModel.findOne({ where: { slug } });
 };
 
-export const checkIfCategoryExistsByID = async (
+export const checkIfCategoryExistsById = async (
   req: Request,
   res: Response,
   next: NextFunction,
