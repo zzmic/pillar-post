@@ -19,17 +19,9 @@ interface SlugModel {
   }) => Promise<Record<string, unknown> | null>;
 }
 
-interface DbModelMap {
-  posts?: unknown;
-  categories?: unknown;
-  tags?: unknown;
-}
-
-const models = db as DbModelMap;
-
 const getModel = (model: unknown, modelName: string): SlugModel => {
   if (
-    typeof model !== "object" ||
+    (typeof model !== "object" && typeof model !== "function") ||
     model === null ||
     typeof (model as { findOne?: unknown }).findOne !== "function"
   ) {
@@ -41,11 +33,24 @@ const getModel = (model: unknown, modelName: string): SlugModel => {
   return model as SlugModel;
 };
 
-// Lazy getters for models to handle async model initialization
-const getPosts = (): SlugModel => getModel(models.posts, "posts");
-const getCategories = (): SlugModel =>
-  getModel(models.categories, "categories");
-const getTags = (): SlugModel => getModel(models.tags, "tags");
+const getPosts = (): SlugModel => {
+  const postsModel =
+    db.sequelize?.models?.posts || (db as Record<string, unknown>).posts;
+  return getModel(postsModel, "posts");
+};
+
+const getCategories = (): SlugModel => {
+  const categoriesModel =
+    db.sequelize?.models?.categories ||
+    (db as Record<string, unknown>).categories;
+  return getModel(categoriesModel, "categories");
+};
+
+const getTags = (): SlugModel => {
+  const tagsModel =
+    db.sequelize?.models?.tags || (db as Record<string, unknown>).tags;
+  return getModel(tagsModel, "tags");
+};
 
 export const generateSlug = (titleInput: unknown): string => {
   const title = assertNonEmptyString(

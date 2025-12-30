@@ -21,15 +21,9 @@ interface CategoryModel {
   findByPk: (id: unknown) => Promise<CategoryInstance | null>;
 }
 
-interface DbModelMap {
-  categories?: unknown;
-}
-
-const models = db as DbModelMap;
-
 const getModel = <T>(model: unknown, modelName: string): T => {
   if (
-    typeof model !== "object" ||
+    (typeof model !== "object" && typeof model !== "function") ||
     model === null ||
     typeof (model as { create?: unknown }).create !== "function"
   ) {
@@ -42,7 +36,10 @@ const getModel = <T>(model: unknown, modelName: string): T => {
 };
 
 const getCategory = (): CategoryModel => {
-  return getModel<CategoryModel>(models.categories, "categories");
+  const categoriesModel =
+    db.sequelize?.models?.categories ||
+    (db as Record<string, unknown>).categories;
+  return getModel<CategoryModel>(categoriesModel, "categories");
 };
 
 interface CategorySuccessResponse<T> {

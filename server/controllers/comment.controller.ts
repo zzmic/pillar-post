@@ -41,17 +41,9 @@ interface PostModel {
   ) => Promise<PostInstance | null>;
 }
 
-interface DbModelMap {
-  comments?: unknown;
-  users?: unknown;
-  posts?: unknown;
-}
-
-const models = db as DbModelMap;
-
 const getModel = <T>(model: unknown, modelName: string): T => {
   if (
-    typeof model !== "object" ||
+    (typeof model !== "object" && typeof model !== "function") ||
     model === null ||
     typeof (model as { findByPk?: unknown }).findByPk !== "function"
   ) {
@@ -64,18 +56,25 @@ const getModel = <T>(model: unknown, modelName: string): T => {
 };
 
 const getComments = (): CommentModel => {
-  return getModel<CommentModel>(models.comments, "comments");
+  const commentsModel =
+    db.sequelize?.models?.comments || (db as Record<string, unknown>).comments;
+  return getModel<CommentModel>(commentsModel, "comments");
 };
 
 const getPosts = (): PostModel => {
-  return getModel<PostModel>(models.posts, "posts");
+  const postsModel =
+    db.sequelize?.models?.posts || (db as Record<string, unknown>).posts;
+  return getModel<PostModel>(postsModel, "posts");
 };
 
 const ensureReferenceModel = (
   model: unknown,
   modelName: string,
 ): Record<string, unknown> => {
-  if (typeof model !== "object" || model === null) {
+  if (
+    (typeof model !== "object" && typeof model !== "function") ||
+    model === null
+  ) {
     throw new Error(
       `Model '${modelName}' is not available on the database instance.`,
     );
@@ -85,7 +84,9 @@ const ensureReferenceModel = (
 };
 
 const getUsers = (): Record<string, unknown> => {
-  return ensureReferenceModel(models.users, "users");
+  const usersModel =
+    db.sequelize?.models?.users || (db as Record<string, unknown>).users;
+  return ensureReferenceModel(usersModel, "users");
 };
 
 interface CommentSuccessResponse<T> {

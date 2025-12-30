@@ -51,6 +51,9 @@ async function initializeModels() {
       const { default: modelDefinition } = await import(`./${file}`);
       const model = modelDefinition(sequelize, Sequelize.DataTypes);
       db[model.name] = model;
+      if (sequelize.models) {
+        sequelize.models[model.name] = model;
+      }
       console.log(`Loaded model: ${model.name}`);
     } catch (error) {
       console.error(`Error loading model from ${file}:`, error);

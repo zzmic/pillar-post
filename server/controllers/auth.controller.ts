@@ -21,15 +21,9 @@ interface UserModel {
   create: (values: Record<string, unknown>) => Promise<UserAttributes>;
 }
 
-interface DbModelMap {
-  users?: unknown;
-}
-
-const models = db as DbModelMap;
-
 const getModel = <T>(model: unknown, modelName: string): T => {
   if (
-    typeof model !== "object" ||
+    (typeof model !== "object" && typeof model !== "function") ||
     model === null ||
     typeof (model as { findOne?: unknown }).findOne !== "function"
   ) {
@@ -42,7 +36,9 @@ const getModel = <T>(model: unknown, modelName: string): T => {
 };
 
 const getUsers = (): UserModel => {
-  return getModel<UserModel>(models.users, "users");
+  const usersModel =
+    db.sequelize?.models?.users || (db as Record<string, unknown>).users;
+  return getModel<UserModel>(usersModel, "users");
 };
 
 type SessionWithUser = Session & Partial<SessionData>;

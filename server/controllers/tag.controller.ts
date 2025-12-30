@@ -25,15 +25,9 @@ interface TagModel {
   ) => Promise<{ count: number; rows: TagInstance[] }>;
 }
 
-interface DbModelMap {
-  tags?: unknown;
-}
-
-const models = db as DbModelMap;
-
 const getModel = <T>(model: unknown, modelName: string): T => {
   if (
-    typeof model !== "object" ||
+    (typeof model !== "object" && typeof model !== "function") ||
     model === null ||
     typeof (model as { create?: unknown }).create !== "function"
   ) {
@@ -46,7 +40,9 @@ const getModel = <T>(model: unknown, modelName: string): T => {
 };
 
 const getTags = (): TagModel => {
-  return getModel<TagModel>(models.tags, "tags");
+  const tagsModel =
+    db.sequelize?.models?.tags || (db as Record<string, unknown>).tags;
+  return getModel<TagModel>(tagsModel, "tags");
 };
 
 interface TagSuccessResponse<T> {

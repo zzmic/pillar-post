@@ -39,18 +39,9 @@ interface PostModel {
   destroy: (options: Record<string, unknown>) => Promise<void>;
 }
 
-interface DbModelMap {
-  posts?: unknown;
-  users?: unknown;
-  categories?: unknown;
-  tags?: unknown;
-}
-
-const models = db as DbModelMap;
-
 const getModel = <T>(model: unknown, modelName: string): T => {
   if (
-    typeof model !== "object" ||
+    (typeof model !== "object" && typeof model !== "function") ||
     model === null ||
     typeof (model as { findAndCountAll?: unknown }).findAndCountAll !==
       "function"
@@ -64,14 +55,19 @@ const getModel = <T>(model: unknown, modelName: string): T => {
 };
 
 const getPosts = (): PostModel => {
-  return getModel<PostModel>(models.posts, "posts");
+  const postsModel =
+    db.sequelize?.models?.posts || (db as Record<string, unknown>).posts;
+  return getModel<PostModel>(postsModel, "posts");
 };
 
 const ensureReferenceModel = (
   model: unknown,
   modelName: string,
 ): Record<string, unknown> => {
-  if (typeof model !== "object" || model === null) {
+  if (
+    (typeof model !== "object" && typeof model !== "function") ||
+    model === null
+  ) {
     throw new Error(
       `Model '${modelName}' is not available on the database instance.`,
     );
@@ -81,15 +77,22 @@ const ensureReferenceModel = (
 };
 
 const getUsers = (): Record<string, unknown> => {
-  return ensureReferenceModel(models.users, "users");
+  const usersModel =
+    db.sequelize?.models?.users || (db as Record<string, unknown>).users;
+  return ensureReferenceModel(usersModel, "users");
 };
 
 const getCategories = (): Record<string, unknown> => {
-  return ensureReferenceModel(models.categories, "categories");
+  const categoriesModel =
+    db.sequelize?.models?.categories ||
+    (db as Record<string, unknown>).categories;
+  return ensureReferenceModel(categoriesModel, "categories");
 };
 
 const getTags = (): Record<string, unknown> => {
-  return ensureReferenceModel(models.tags, "tags");
+  const tagsModel =
+    db.sequelize?.models?.tags || (db as Record<string, unknown>).tags;
+  return ensureReferenceModel(tagsModel, "tags");
 };
 
 interface PostSuccessResponse<T> {
@@ -159,8 +162,16 @@ export const createPost = async (
           as: "author",
           attributes: ["user_id", "username"],
         },
-        { model: getCategories(), as: "categories" },
-        { model: getTags(), as: "tags" },
+        {
+          model: getCategories(),
+          as: "categories",
+          through: { attributes: [] }, // Exclude join table attributes.
+        },
+        {
+          model: getTags(),
+          as: "tags",
+          through: { attributes: [] }, // Exclude join table attributes.
+        },
       ],
     });
 
@@ -219,11 +230,13 @@ export const getAllPosts = async (
       {
         model: getCategories(),
         as: "categories",
+        through: { attributes: [] }, // Exclude join table attributes.
         ...(category ? { where: { slug: category } } : {}),
       },
       {
         model: getTags(),
         as: "tags",
+        through: { attributes: [] }, // Exclude join table attributes.
         ...(tag ? { where: { slug: tag } } : {}),
       },
     ];
@@ -270,8 +283,16 @@ export const getPostById = async (
           as: "author",
           attributes: ["user_id", "username"],
         },
-        { model: getCategories(), as: "categories" },
-        { model: getTags(), as: "tags" },
+        {
+          model: getCategories(),
+          as: "categories",
+          through: { attributes: [] }, // Exclude join table attributes.
+        },
+        {
+          model: getTags(),
+          as: "tags",
+          through: { attributes: [] }, // Exclude join table attributes.
+        },
       ],
     });
 
@@ -339,8 +360,16 @@ export const updatePost = async (
           as: "author",
           attributes: ["user_id", "username"],
         },
-        { model: getCategories(), as: "categories" },
-        { model: getTags(), as: "tags" },
+        {
+          model: getCategories(),
+          as: "categories",
+          through: { attributes: [] }, // Exclude join table attributes.
+        },
+        {
+          model: getTags(),
+          as: "tags",
+          through: { attributes: [] }, // Exclude join table attributes.
+        },
       ],
     });
 
