@@ -46,7 +46,9 @@ const getModel = <T>(model: unknown, modelName: string): T => {
   return model as T;
 };
 
-const Users = getModel<UserModel>(models.users, "users");
+const getUsers = (): UserModel => {
+  return getModel<UserModel>(models.users, "users");
+};
 
 type SessionWithUser = Session & Partial<SessionData>;
 
@@ -84,7 +86,7 @@ export const getUserProfile = async (
       return;
     }
 
-    const user = await Users.findByPk(userId, {
+    const user = await getUsers().findByPk(userId, {
       attributes: { exclude: ["password"] },
     });
 
@@ -141,7 +143,7 @@ export const updateUserProfile = async (
       req.body as Record<string, unknown>;
 
     if (typeof username === "string") {
-      const existingUser = await Users.findOne({
+      const existingUser = await getUsers().findOne({
         where: {
           username,
           user_id: { [Op.ne]: userId },
@@ -161,7 +163,7 @@ export const updateUserProfile = async (
     }
 
     if (typeof email === "string") {
-      const existingUser = await Users.findOne({
+      const existingUser = await getUsers().findOne({
         where: {
           email,
           user_id: { [Op.ne]: userId },
@@ -180,7 +182,7 @@ export const updateUserProfile = async (
       }
     }
 
-    const user = await Users.findByPk(userId);
+    const user = await getUsers().findByPk(userId);
     if (!user) {
       const response: UserFailResponse = {
         status: "fail",
@@ -201,7 +203,7 @@ export const updateUserProfile = async (
 
     await user.update(updateData);
 
-    const updatedUser = await Users.findByPk(userId, {
+    const updatedUser = await getUsers().findByPk(userId, {
       attributes: { exclude: ["password"] },
     });
 

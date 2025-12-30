@@ -47,21 +47,39 @@ async function initializeModels() {
   });
 
   for (const file of files) {
-    const { default: modelDefinition } = await import(`./${file}`);
-    const model = modelDefinition(sequelize, Sequelize.DataTypes);
-    db[model.name] = model;
+    try {
+      const { default: modelDefinition } = await import(`./${file}`);
+      const model = modelDefinition(sequelize, Sequelize.DataTypes);
+      db[model.name] = model;
+      console.log(`Loaded model: ${model.name}`);
+    } catch (error) {
+      console.error(`Error loading model from ${file}:`, error);
+      throw error;
+    }
   }
 
   return db;
 }
 
-await initializeModels();
+try {
+  await sequelize.authenticate();
+  console.log("Database connection established successfully.");
 
-Object.keys(db).forEach((modelName) => {
-  if (db[modelName].associate) {
-    db[modelName].associate(db);
-  }
-});
+  await initializeModels();
+  console.log(
+    "Models initialized successfully. Available models:",
+    Object.keys(db),
+  );
+
+  Object.keys(db).forEach((modelName) => {
+    if (db[modelName].associate) {
+      db[modelName].associate(db);
+    }
+  });
+} catch (error) {
+  console.error("Error initializing models or database connection:", error);
+  throw error;
+}
 
 // Store the `Sequelize` class itself and the initialized `Sequelize` connection instance in the `db` object.
 db.sequelize = sequelize;

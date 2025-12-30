@@ -41,7 +41,9 @@ const getModel = <T>(model: unknown, modelName: string): T => {
   return model as T;
 };
 
-const Users = getModel<UserModel>(models.users, "users");
+const getUsers = (): UserModel => {
+  return getModel<UserModel>(models.users, "users");
+};
 
 type SessionWithUser = Session & Partial<SessionData>;
 
@@ -113,7 +115,7 @@ export const signUp = async (
       return;
     }
 
-    const userByUsername = await Users.findOne({
+    const userByUsername = await getUsers().findOne({
       where: { username },
     });
     if (userByUsername) {
@@ -125,7 +127,7 @@ export const signUp = async (
       return;
     }
 
-    const userByEmail = await Users.findOne({ where: { email } });
+    const userByEmail = await getUsers().findOne({ where: { email } });
     if (userByEmail) {
       const response: FailResponse = {
         status: "fail",
@@ -137,7 +139,7 @@ export const signUp = async (
 
     const hashedPassword = await hashPassword(password);
 
-    const newUser = await Users.create({
+    const newUser = await getUsers().create({
       username,
       email,
       password: hashedPassword,
@@ -176,7 +178,7 @@ export const logIn = async (
       return;
     }
 
-    const user = await Users.findOne({
+    const user = await getUsers().findOne({
       where: {
         [Op.or]: [{ username: identifier }, { email: identifier }],
       },

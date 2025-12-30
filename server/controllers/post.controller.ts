@@ -63,7 +63,10 @@ const getModel = <T>(model: unknown, modelName: string): T => {
   return model as T;
 };
 
-const Posts = getModel<PostModel>(models.posts, "posts");
+const getPosts = (): PostModel => {
+  return getModel<PostModel>(models.posts, "posts");
+};
+
 const ensureReferenceModel = (
   model: unknown,
   modelName: string,
@@ -77,9 +80,17 @@ const ensureReferenceModel = (
   return model as Record<string, unknown>;
 };
 
-const Users = ensureReferenceModel(models.users, "users");
-const Categories = ensureReferenceModel(models.categories, "categories");
-const Tags = ensureReferenceModel(models.tags, "tags");
+const getUsers = (): Record<string, unknown> => {
+  return ensureReferenceModel(models.users, "users");
+};
+
+const getCategories = (): Record<string, unknown> => {
+  return ensureReferenceModel(models.categories, "categories");
+};
+
+const getTags = (): Record<string, unknown> => {
+  return ensureReferenceModel(models.tags, "tags");
+};
 
 interface PostSuccessResponse<T> {
   status: "success";
@@ -133,7 +144,7 @@ export const createPost = async (
     const normalizedSlug = generateSlug(baseSlugSource);
     const uniqueSlug = await ensureUniquePostSlug(normalizedSlug);
 
-    const newPost = await Posts.create({
+    const newPost = await getPosts().create({
       title,
       body,
       slug: uniqueSlug,
@@ -141,11 +152,15 @@ export const createPost = async (
       user_id: user.user_id,
     });
 
-    const createdPost = await Posts.findByPk(newPost.post_id, {
+    const createdPost = await getPosts().findByPk(newPost.post_id, {
       include: [
-        { model: Users, as: "author", attributes: ["user_id", "username"] },
-        { model: Categories, as: "categories" },
-        { model: Tags, as: "tags" },
+        {
+          model: getUsers(),
+          as: "author",
+          attributes: ["user_id", "username"],
+        },
+        { model: getCategories(), as: "categories" },
+        { model: getTags(), as: "tags" },
       ],
     });
 
@@ -200,20 +215,20 @@ export const getAllPosts = async (
     }
 
     const includeArray: Record<string, unknown>[] = [
-      { model: Users, as: "author", attributes: ["user_id", "username"] },
+      { model: getUsers(), as: "author", attributes: ["user_id", "username"] },
       {
-        model: Categories,
+        model: getCategories(),
         as: "categories",
         ...(category ? { where: { slug: category } } : {}),
       },
       {
-        model: Tags,
+        model: getTags(),
         as: "tags",
         ...(tag ? { where: { slug: tag } } : {}),
       },
     ];
 
-    const { count, rows } = await Posts.findAndCountAll({
+    const { count, rows } = await getPosts().findAndCountAll({
       where: whereConditions,
       include: includeArray,
       order: [["created_at", "DESC"]],
@@ -248,11 +263,15 @@ export const getPostById = async (
   try {
     const postId = req.params.post_id;
 
-    const post = await Posts.findByPk(postId, {
+    const post = await getPosts().findByPk(postId, {
       include: [
-        { model: Users, as: "author", attributes: ["user_id", "username"] },
-        { model: Categories, as: "categories" },
-        { model: Tags, as: "tags" },
+        {
+          model: getUsers(),
+          as: "author",
+          attributes: ["user_id", "username"],
+        },
+        { model: getCategories(), as: "categories" },
+        { model: getTags(), as: "tags" },
       ],
     });
 
@@ -311,13 +330,17 @@ export const updatePost = async (
     if (slug !== undefined) updateData.slug = slug;
     if (status !== undefined) updateData.status = status;
 
-    await Posts.update(updateData, { where: { post_id: postId } });
+    await getPosts().update(updateData, { where: { post_id: postId } });
 
-    const updatedPost = await Posts.findByPk(postId, {
+    const updatedPost = await getPosts().findByPk(postId, {
       include: [
-        { model: Users, as: "author", attributes: ["user_id", "username"] },
-        { model: Categories, as: "categories" },
-        { model: Tags, as: "tags" },
+        {
+          model: getUsers(),
+          as: "author",
+          attributes: ["user_id", "username"],
+        },
+        { model: getCategories(), as: "categories" },
+        { model: getTags(), as: "tags" },
       ],
     });
 
@@ -344,7 +367,7 @@ export const deletePost = async (
   try {
     const postId = req.params.post_id;
 
-    await Posts.destroy({ where: { post_id: postId } });
+    await getPosts().destroy({ where: { post_id: postId } });
 
     const response: PostSuccessResponse<Record<string, never>> = {
       status: "success",

@@ -41,7 +41,9 @@ const getModel = <T>(model: unknown, modelName: string): T => {
   return model as T;
 };
 
-const Category = getModel<CategoryModel>(models.categories, "categories");
+const getCategory = (): CategoryModel => {
+  return getModel<CategoryModel>(models.categories, "categories");
+};
 
 interface CategorySuccessResponse<T> {
   status: "success";
@@ -62,7 +64,7 @@ export const createCategory = async (
   try {
     const { name, description, slug } = req.body as Record<string, unknown>;
 
-    const category = await Category.create({
+    const category = await getCategory().create({
       name,
       description: description ?? null,
       slug,

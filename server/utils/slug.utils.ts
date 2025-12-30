@@ -41,9 +41,11 @@ const getModel = (model: unknown, modelName: string): SlugModel => {
   return model as SlugModel;
 };
 
-const Posts = getModel(models.posts, "posts");
-const Categories = getModel(models.categories, "categories");
-const Tags = getModel(models.tags, "tags");
+// Lazy getters for models to handle async model initialization
+const getPosts = (): SlugModel => getModel(models.posts, "posts");
+const getCategories = (): SlugModel =>
+  getModel(models.categories, "categories");
+const getTags = (): SlugModel => getModel(models.tags, "tags");
 
 export const generateSlug = (titleInput: unknown): string => {
   const title = assertNonEmptyString(
@@ -83,7 +85,7 @@ export const ensureUniquePostSlug = async (
         where.post_id = { [Op.ne]: postId };
       }
 
-      const existingPost = await Posts.findOne({ where });
+      const existingPost = await getPosts().findOne({ where });
 
       if (!existingPost) {
         isUnique = true;
@@ -119,7 +121,7 @@ export const ensureUniqueCategorySlug = async (
       whereClause.category_id = { [Op.ne]: excludeId };
     }
 
-    const existingCategory = await Categories.findOne({
+    const existingCategory = await getCategories().findOne({
       where: whereClause,
     });
 
@@ -155,7 +157,7 @@ export const ensureUniqueTagSlug = async (
         where.tag_id = { [Op.ne]: tagId };
       }
 
-      const existingTag = await Tags.findOne({ where });
+      const existingTag = await getTags().findOne({ where });
 
       if (!existingTag) {
         isUnique = true;

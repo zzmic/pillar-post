@@ -63,8 +63,13 @@ const getModel = <T>(model: unknown, modelName: string): T => {
   return model as T;
 };
 
-const Comments = getModel<CommentModel>(models.comments, "comments");
-const Posts = getModel<PostModel>(models.posts, "posts");
+const getComments = (): CommentModel => {
+  return getModel<CommentModel>(models.comments, "comments");
+};
+
+const getPosts = (): PostModel => {
+  return getModel<PostModel>(models.posts, "posts");
+};
 
 const ensureReferenceModel = (
   model: unknown,
@@ -79,7 +84,9 @@ const ensureReferenceModel = (
   return model as Record<string, unknown>;
 };
 
-const Users = ensureReferenceModel(models.users, "users");
+const getUsers = (): Record<string, unknown> => {
+  return ensureReferenceModel(models.users, "users");
+};
 
 interface CommentSuccessResponse<T> {
   status: "success";
@@ -125,7 +132,7 @@ export const createComment = async (
       return;
     }
 
-    const post = await Posts.findByPk(postId);
+    const post = await getPosts().findByPk(postId);
     if (!post) {
       const response: CommentFailResponse = {
         status: "fail",
@@ -136,7 +143,7 @@ export const createComment = async (
     }
 
     if (parentCommentId) {
-      const parentComment = await Comments.findByPk(parentCommentId);
+      const parentComment = await getComments().findByPk(parentCommentId);
       if (!parentComment) {
         const response: CommentFailResponse = {
           status: "fail",
@@ -156,7 +163,7 @@ export const createComment = async (
       }
     }
 
-    const newComment = await Comments.create({
+    const newComment = await getComments().create({
       post_id: postId,
       user_id: user.user_id,
       parent_comment_id: parentCommentId ?? null,
@@ -164,10 +171,10 @@ export const createComment = async (
       status: "pending",
     });
 
-    const createdComment = await Comments.findByPk(newComment.comment_id, {
+    const createdComment = await getComments().findByPk(newComment.comment_id, {
       include: [
         {
-          model: Users,
+          model: getUsers(),
           as: "commenter",
           attributes: ["user_id", "username"],
         },
@@ -230,7 +237,7 @@ export const getCommentsByPost = async (
     const postId = req.params.post_id;
     const userRole = req.user?.role ?? null;
 
-    const post = await Posts.findByPk(postId);
+    const post = await getPosts().findByPk(postId);
     if (!post) {
       const response: CommentFailResponse = {
         status: "fail",
@@ -248,11 +255,11 @@ export const getCommentsByPost = async (
       whereConditions.status = "approved";
     }
 
-    const comments = await Comments.findAll({
+    const comments = await getComments().findAll({
       where: whereConditions,
       include: [
         {
-          model: Users,
+          model: getUsers(),
           as: "commenter",
           attributes: ["user_id", "username"],
         },
@@ -294,7 +301,7 @@ export const updateComment = async (
     const commentId = req.params.comment_id;
     const { commentBody } = req.body as UpdateCommentBody;
 
-    const comment = await Comments.findByPk(commentId);
+    const comment = await getComments().findByPk(commentId);
     if (!comment) {
       const response: CommentFailResponse = {
         status: "fail",
@@ -331,10 +338,10 @@ export const updateComment = async (
       status: user.role === "admin" ? comment.status : "pending",
     });
 
-    const updatedComment = await Comments.findByPk(commentId, {
+    const updatedComment = await getComments().findByPk(commentId, {
       include: [
         {
-          model: Users,
+          model: getUsers(),
           as: "commenter",
           attributes: ["user_id", "username"],
         },
@@ -364,7 +371,7 @@ export const deleteComment = async (
 ): Promise<void> => {
   try {
     const commentId = req.params.comment_id;
-    const comment = await Comments.findByPk(commentId);
+    const comment = await getComments().findByPk(commentId);
 
     if (!comment) {
       const response: CommentFailResponse = {
@@ -397,7 +404,7 @@ export const deleteComment = async (
       return;
     }
 
-    const repliesCount = await Comments.count({
+    const repliesCount = await getComments().count({
       where: { parent_comment_id: commentId },
     });
 

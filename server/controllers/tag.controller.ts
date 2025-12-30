@@ -45,7 +45,9 @@ const getModel = <T>(model: unknown, modelName: string): T => {
   return model as T;
 };
 
-const Tags = getModel<TagModel>(models.tags, "tags");
+const getTags = (): TagModel => {
+  return getModel<TagModel>(models.tags, "tags");
+};
 
 interface TagSuccessResponse<T> {
   status: "success";
@@ -63,7 +65,7 @@ export const createTag = async (req: Request, res: Response): Promise<void> => {
   try {
     const { name, slug } = req.body as Record<string, unknown>;
 
-    const existingTag = await Tags.findOne({
+    const existingTag = await getTags().findOne({
       where: {
         [Op.or]: [{ name }, { slug }],
       },
@@ -78,7 +80,7 @@ export const createTag = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const newTag = await Tags.create({
+    const newTag = await getTags().create({
       name,
       slug:
         typeof slug === "string" && slug.trim().length > 0
@@ -122,7 +124,7 @@ export const getAllTags = async (
     const limit = Math.max(1, normalizeInt(req.query.limit, 50));
     const offset = (page - 1) * limit;
 
-    const { count, rows: tags } = await Tags.findAndCountAll({
+    const { count, rows: tags } = await getTags().findAndCountAll({
       limit,
       offset,
       order: [["name", "ASC"]],
@@ -169,7 +171,7 @@ export const getTagByID = async (
 ): Promise<void> => {
   try {
     const tagId = req.params.tag_id;
-    const tag = await Tags.findByPk(tagId);
+    const tag = await getTags().findByPk(tagId);
 
     if (!tag) {
       const response: TagFailResponse = {
@@ -204,7 +206,7 @@ export const getTagBySlug = async (
 ): Promise<void> => {
   try {
     const slug = req.params.slug;
-    const tag = await Tags.findOne({ where: { slug } });
+    const tag = await getTags().findOne({ where: { slug } });
 
     if (!tag) {
       const response: TagFailResponse = {
@@ -238,7 +240,7 @@ export const updateTag = async (req: Request, res: Response): Promise<void> => {
     const tagId = req.params.tag_id;
     const { name, slug } = req.body as Record<string, unknown>;
 
-    const tag = await Tags.findByPk(tagId);
+    const tag = await getTags().findByPk(tagId);
     if (!tag) {
       const response: TagFailResponse = {
         status: "fail",
@@ -249,7 +251,7 @@ export const updateTag = async (req: Request, res: Response): Promise<void> => {
     }
 
     if (name || slug) {
-      const existingTag = await Tags.findOne({
+      const existingTag = await getTags().findOne({
         where: {
           [Op.and]: [
             {
@@ -298,7 +300,7 @@ export const updateTag = async (req: Request, res: Response): Promise<void> => {
 export const deleteTag = async (req: Request, res: Response): Promise<void> => {
   try {
     const tagId = req.params.tag_id;
-    const tag = await Tags.findByPk(tagId);
+    const tag = await getTags().findByPk(tagId);
 
     if (!tag) {
       const response: TagFailResponse = {
