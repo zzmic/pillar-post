@@ -2,7 +2,7 @@
 
 ## Overview
 
-This blog platform is powered by the PERN stack, combining PostgreSQL, Express.js, React, and Node.js. It provides a secure and intuitive environment for content creation and management, with a RESTful API on the backend that guarantees data integrity and a dynamic React frontend (under development) that supports rich-text editing, interactive commenting, and dynamic content rendering.
+This blog platform is powered by the PERN stack, combining PostgreSQL, Express.js, React, and Node.js. It provides a secure and intuitive environment for content creation and management, with a RESTful API on the backend that guarantees data integrity and a dynamic React frontend that supports rich-text editing, interactive commenting, and dynamic content rendering.
 
 Content is transformed into a structured blog ecosystem through a comprehensive, multi-layered architecture:
 
@@ -52,7 +52,10 @@ The application is organized into a clear, modular structure:
 - **server/models/**: Sequelize ORM model definitions.
 - **server/routes/**: Defines API endpoints and their associated controllers.
 - **server/utils/**: Utility functions for various tasks.
-- **client/**: The React frontend.
+- **client/**: The React frontend application.
+  - **client/src/components/**: React components for UI (Posts, Comments, Auth, etc.).
+  - **client/src/context/**: React Context for authentication state management.
+  - **client/src/services/**: API service layer for backend communication.
 
 ## Building and Usage
 
@@ -87,22 +90,45 @@ npx sequelize-cli db:migrate
 
 #### Development
 
-1.  Start the backend: `cd server && npm run dev`
-2.  Start the frontend: `cd client && npm run dev`
+1. **Start the backend server** (runs on port 8080):
+   ```bash
+   cd server
+   npm run dev
+   ```
+2. **Start the frontend development server** (runs on port 5173):
+   ```bash
+   cd client
+   npm run dev
+   ```
 
-#### Production
+## Frontend Features
 
-1.  Build the frontend: `cd client && npm run build`
-2.  Start the production server: `cd server && npm start`
+The React frontend provides a user interface for the blog platform:
+
+- **Authentication UI**: Login and signup forms with session management
+- **Posts Management**:
+  - View all posts with pagination
+  - View individual post details
+  - Create new posts (authors only)
+  - Edit and delete posts (ownership required)
+- **Comments System**:
+  - View comments on posts
+  - Post new comments (authenticated users)
+  - Delete own comments
+- **User Interface**:
+  - Responsive navigation bar
+  - Role-based UI elements (Admin, Author, Subscriber)
 
 ## API Endpoints
 
 - **Authentication**:
+
   - `POST /api/auth/signup`: User registration.
   - `POST /api/auth/login`: Session-based login.
   - `POST /api/auth/logout`: Session destruction.
 
 - **Posts**:
+
   - `POST /api/posts`: Create a new post (Author/Admin only).
   - `GET /api/posts`: Retrieve all posts with pagination.
   - `GET /api/posts/:id`: Get a single post with comments and associations.
@@ -110,11 +136,18 @@ npx sequelize-cli db:migrate
   - `DELETE /api/posts/:id`: Delete a post (ownership required).
 
 - **Comments**:
-  - `POST /api/comments`: Create a new comment.
+
+  - `POST /api/comments/posts/:post_id`: Create a new comment.
+  - `GET /api/comments/posts/:post_id`: Get comments for a post.
   - `PUT /api/comments/:id`: Update a comment (ownership required).
   - `DELETE /api/comments/:id`: Delete a comment (ownership required).
 
+- **Users**:
+  - `GET /api/users/:id/profile`: Get a user's profile.
+  - `PUT /api/users/:id/profile`: Update a user's profile.
+
 ## References
+
 - [Node.js Documentation](https://nodejs.org/en/docs/)
 - [Express.js Documentation](https://expressjs.com/)
 - [Sequelize Documentation](https://sequelize.org/)
