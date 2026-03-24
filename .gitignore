@@ -1,33 +1,27 @@
-# Node.js.
 .pnpm-debug.log*
 .env
 
-# Frontend specific.
 client/.env
 client/build/
 
-# Backend specific.
 server/.env
 server/node_modules/
 server/dist/
+server/cookies.txt
+server/admin_cookies.txt
+server/coverage/
 
-# Logs.
 *.log
 logs/
 *.log.*
 
-# OS generated files.
-.DS_Store
+**/.DS_Store
 Thumbs.db
 
-# IDE specific files.
-.vscode/
-.idea/
+**/.vscode/
+**/.idea/
 
-# Temporary files.
-tmp/
+**/.tmp/
 *.tmp
 
-# Cookies.
-server/cookies.txt
-server/admin_cookies.txt
+package-lock.json

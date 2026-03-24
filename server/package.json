@@ -9,10 +9,14 @@
     "dev": "tsx watch index.ts",
     "build": "tsc --project tsconfig.json",
     "clean-build": "rm -r dist",
-    "lint": "npx eslint . --ext .ts,.js",
-    "lint:fix": "npx eslint . --ext .ts,.js --fix",
-    "lint:check": "npx eslint . --ext .ts,.js --max-warnings 0",
-    "format": "npx prettier --write ."
+    "lint": "npx eslint .",
+    "lint:fix": "npx eslint . --fix",
+    "lint:check": "npx eslint . --max-warnings 0",
+    "format": "npx prettier --write .",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
@@ -46,6 +50,8 @@
     "@types/sanitize-html": "^2.16.0",
     "@typescript-eslint/eslint-plugin": "^8.46.2",
     "@typescript-eslint/parser": "^8.46.2",
+    "@vitest/coverage-v8": "^3.2.4",
+    "@vitest/ui": "^3.2.4",
     "eslint": "^9.38.0",
     "globals": "^16.4.0",
     "jiti": "^2.6.1",
@@ -54,6 +60,7 @@
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.46.2"
+    "typescript-eslint": "^8.46.2",
+    "vitest": "^3.2.4"
   }
 }
