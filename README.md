@@ -37,7 +37,7 @@ Content is transformed into a structured blog ecosystem through a comprehensive,
 
 - **Session Security**: Uses secure, HttpOnly, and SameSite cookies with a PostgreSQL-backed session store.
 - **Input Validation**: Express Validator and sanitize-html prevent common attacks like SQL injection and XSS.
-- **Rate Limiting**: Throttles authentication attempts to prevent brute-force attacks.
+- **Rate Limiting**: Stricter limits on `/api/auth`; a separate limit applies to all `/api` routes.
 - **CORS Protection**: Configurable cross-origin resource sharing for secure communication.
 
 ## Project Structure
@@ -65,6 +65,17 @@ The application is organized into a clear, modular structure:
 - PostgreSQL
 - Environment variables configured (`.env` file)
 
+### Environment variables (server)
+
+| Variable                                       | Notes                                                                                                                                                                     |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DB_NAME`                                      | Base name for databases: `{DB_NAME}_dev`, `_test`, `_prod`. If unset in development/test, defaults to `pillar_post` (e.g. `pillar_post_dev`). **Required in production.** |
+| `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD` | PostgreSQL connection (see `server/config/config.js`).                                                                                                                    |
+| `SESSION_SECRET`                               | Required. Used to sign session cookies.                                                                                                                                   |
+| `CORS_ORIGIN`                                  | Allowed browser origin (default `http://localhost:3000`).                                                                                                                 |
+| `TRUST_PROXY`                                  | Optional; set to `1` or `true` when the app sits behind a reverse proxy so `req.ip`, rate limiting, and secure cookies use `X-Forwarded-*` correctly.                               |
+| `TRUST_PROXY_HOPS`                             | Optional; number of trusted proxies (default `1`). Only used when `TRUST_PROXY` is enabled.                                                                               |
+
 ### Installation
 
 ```bash
@@ -78,6 +89,8 @@ npm install
 ```
 
 ### Database Setup
+
+Migrations create application tables and the **`session`** table used by the PostgreSQL session store (`connect-pg-simple`). Run them on every new database.
 
 ```bash
 # Create database and run migrations
@@ -121,8 +134,11 @@ The React frontend provides a user interface for the blog platform:
 
 ## API Endpoints
 
+- **Health**:
+  - `GET /health`: Liveness/readiness-style check. Returns **200** when the app and database connection are OK, **503** if the database check fails (see `checks.database` in the JSON body).
+
 - **Authentication**:
-  - `POST /api/auth/signup`: User registration.
+  - `POST /api/auth/signup`: User registration (new accounts are created as `subscriber`; roles are not chosen via this endpoint).
   - `POST /api/auth/login`: Session-based login.
   - `POST /api/auth/logout`: Session destruction.
 

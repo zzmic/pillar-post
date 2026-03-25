@@ -16,6 +16,7 @@ import { Pool } from "pg";
 
 const PgSessionStore = connectPgSimple(session);
 
+import db from "./models/index.js";
 import config from "./config/config.js";
 const environment = (process.env.NODE_ENV ??
   "development") as keyof typeof config;
@@ -44,6 +45,15 @@ if (!SESSION_SECRET) {
 
 const app = express();
 const PORT = Number(process.env.PORT) || 8080;
+
+const trustProxyEnv = process.env.TRUST_PROXY?.toLowerCase();
+if (trustProxyEnv === "true" || trustProxyEnv === "1") {
+  const hops = Number.parseInt(process.env.TRUST_PROXY_HOPS ?? "1", 10);
+  app.set(
+    "trust proxy",
+    Number.isFinite(hops) && hops > 0 ? hops : 1,
+  );
+}
 
 app.use(cookieParser());
 app.use(
@@ -109,12 +119,26 @@ app.get("/", (req: Request, res: Response) => {
   });
 });
 
-app.get("/health", (req: Request, res: Response) => {
-  res.json({
-    status: "OK",
+app.get("/health", async (_req: Request, res: Response) => {
+  const environment = process.env.NODE_ENV || "development";
+  let database: "ok" | "error" = "ok";
+
+  try {
+    await db.sequelize.authenticate();
+  } catch {
+    database = "error";
+  }
+
+  const ready = database === "ok";
+
+  res.status(ready ? 200 : 503).json({
+    status: ready ? "OK" : "unavailable",
     uptime: process.uptime(),
-    timestamp: new Date().toLocaleTimeString(),
-    environment: process.env.NODE_ENV || "development",
+    timestamp: new Date().toISOString(),
+    environment,
+    checks: {
+      database,
+    },
   });
 });
 
