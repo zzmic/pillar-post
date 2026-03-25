@@ -184,7 +184,7 @@ export const createComment = async (
 
     const response: CommentSuccessResponse<CommentInstance | null> = {
       status: "success",
-      message: "Comment created successfully and is pending approval",
+      message: "Comment created and is pending approval",
       data: createdComment ?? undefined,
     };
 
@@ -275,7 +275,7 @@ export const getCommentsByPost = async (
       total: number;
     }> = {
       status: "success",
-      message: "Comments fetched successfully",
+      message: "Comments fetched",
       data: {
         comments: structuredComments,
         total: comments.length,
@@ -353,7 +353,7 @@ export const updateComment = async (
       status: "success",
       message:
         user.role === "admin"
-          ? "Comment updated successfully"
+          ? "Comment updated"
           : "Comment updated and is pending approval",
       data: updatedComment ?? undefined,
     };
@@ -417,7 +417,7 @@ export const deleteComment = async (
 
       const response: CommentSuccessResponse<Record<string, never>> = {
         status: "success",
-        message: "Comment deleted successfully",
+        message: "Comment deleted",
       };
       res.status(200).json(response);
       return;
@@ -427,7 +427,7 @@ export const deleteComment = async (
 
     const response: CommentSuccessResponse<Record<string, never>> = {
       status: "success",
-      message: "Comment deleted successfully",
+      message: "Comment deleted",
     };
 
     res.status(200).json(response);

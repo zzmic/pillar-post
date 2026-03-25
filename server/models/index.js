@@ -66,13 +66,10 @@ async function initializeModels() {
 
 try {
   await sequelize.authenticate();
-  console.log("Database connection established successfully.");
+  console.log("Database connection established.");
 
   await initializeModels();
-  console.log(
-    "Models initialized successfully. Available models:",
-    Object.keys(db),
-  );
+  console.log("Models initialized. Available models:", Object.keys(db));
 
   Object.keys(db).forEach((modelName) => {
     if (db[modelName].associate) {

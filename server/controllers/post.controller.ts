@@ -177,7 +177,7 @@ export const createPost = async (
 
     const response: PostSuccessResponse<{ post: PostInstance | null }> = {
       status: "success",
-      message: "Post created successfully",
+      message: "Post created",
       data: {
         post: createdPost ?? null,
       },
@@ -257,7 +257,7 @@ export const getAllPosts = async (
 
     const payload: PostSuccessResponse<PaginatedResponse<PostInstance[]>> = {
       status: "success",
-      message: "Posts fetched successfully",
+      message: "Posts fetched",
       data: response,
     };
 
@@ -323,7 +323,7 @@ export const getPostById = async (
 
     const payload: PostSuccessResponse<{ post: PostInstance | null }> = {
       status: "success",
-      message: "Post fetched successfully",
+      message: "Post fetched",
       data: {
         post,
       },
@@ -375,7 +375,7 @@ export const updatePost = async (
 
     const response: PostSuccessResponse<{ post: PostInstance | null }> = {
       status: "success",
-      message: "Post updated successfully",
+      message: "Post updated",
       data: {
         post: updatedPost ?? null,
       },
@@ -400,7 +400,7 @@ export const deletePost = async (
 
     const response: PostSuccessResponse<Record<string, never>> = {
       status: "success",
-      message: "Post deleted successfully",
+      message: "Post deleted",
       data: {},
     };
 

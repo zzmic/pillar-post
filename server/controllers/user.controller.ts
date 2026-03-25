@@ -97,7 +97,7 @@ export const getUserProfile = async (
 
     const response: UserSuccessResponse<{ user: UserInstance }> = {
       status: "success",
-      message: "User profile fetched successfully",
+      message: "User profile fetched",
       data: { user },
     };
 
@@ -205,7 +205,7 @@ export const updateUserProfile = async (
 
     const response: UserSuccessResponse<{ user: UserInstance | null }> = {
       status: "success",
-      message: "Profile updated successfully",
+      message: "Profile updated",
       data: {
         user: updatedUser,
       },

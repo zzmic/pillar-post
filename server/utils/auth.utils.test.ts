@@ -15,7 +15,7 @@ describe("auth.utils", () => {
   });
 
   describe("hashPassword", () => {
-    it("should hash a password successfully", async () => {
+    it("should hash a password", async () => {
       const password = "testPassword123";
       const hashedPassword = "$2a$12$hashedPasswordString";
 

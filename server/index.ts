@@ -65,10 +65,22 @@ app.use(
 );
 app.use(helmet());
 
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: "Too many requests from this IP. Please try again after 15 minutes.",
+const fifteenMinutesMs = 15 * 60 * 1000;
+
+const authRouteLimiter = rateLimit({
+  windowMs: fifteenMinutesMs,
+  max: 30,
+  message:
+    "Too many authentication attempts from this IP. Please try again after 15 minutes.",
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+});
+
+const apiLimiter = rateLimit({
+  windowMs: fifteenMinutesMs,
+  max: 300,
+  message:
+    "Too many API requests from this IP. Please try again after 15 minutes.",
   standardHeaders: "draft-8",
   legacyHeaders: false,
 });
@@ -85,8 +97,8 @@ app.use(express.urlencoded({ extended: true }));
 
 import apiRoutes from "./routes/index.js";
 
-app.use("/api/auth", authLimiter);
-
+app.use("/api/auth", authRouteLimiter);
+app.use("/api", apiLimiter);
 app.use("/api", apiRoutes);
 
 app.get("/", (req: Request, res: Response) => {

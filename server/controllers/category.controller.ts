@@ -69,7 +69,7 @@ export const createCategory = async (
 
     const response: CategorySuccessResponse<{ category: CategoryInstance }> = {
       status: "success",
-      message: "Category created successfully",
+      message: "Category created",
       data: {
         category,
       },
@@ -125,7 +125,7 @@ export const updateCategory = async (
 
     const response: CategorySuccessResponse<{ category: CategoryInstance }> = {
       status: "success",
-      message: "Category updated successfully",
+      message: "Category updated",
       data: {
         category,
       },
@@ -175,7 +175,7 @@ export const deleteCategory = async (
 
     const response: CategorySuccessResponse<Record<string, never>> = {
       status: "success",
-      message: "Category deleted successfully",
+      message: "Category deleted",
     };
 
     res.status(200).json(response);

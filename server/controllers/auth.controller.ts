@@ -67,7 +67,6 @@ interface SignUpBody {
   username: string;
   email: string;
   password: string;
-  role?: string;
 }
 
 interface LogInBody {
@@ -100,7 +99,7 @@ export const signUp = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const { username, email, password, role } = req.body as Partial<SignUpBody>;
+    const { username, email, password } = req.body as Partial<SignUpBody>;
 
     if (!username || !email || !password) {
       const response: FailResponse = {
@@ -139,12 +138,12 @@ export const signUp = async (
       username,
       email,
       password: hashedPassword,
-      role: role ?? "subscriber",
+      role: "subscriber",
     });
 
     const response: AuthSuccessResponse = {
       status: "success",
-      message: "User registered successfully",
+      message: "User registered",
       data: {
         user: mapUserPayload(newUser),
       },
@@ -216,7 +215,7 @@ export const logIn = async (
 
     const response: AuthSuccessResponse = {
       status: "success",
-      message: "Logged in successfully",
+      message: "Logged in",
       data: {
         user: mapUserPayload(user),
       },
@@ -240,7 +239,7 @@ export const logOut = async (
     if (!session) {
       const response: AuthSuccessResponse = {
         status: "success",
-        message: "Logged out successfully",
+        message: "Logged out",
       };
       res.status(200).json(response);
       return;
@@ -264,7 +263,7 @@ export const logOut = async (
 
     const response: AuthSuccessResponse = {
       status: "success",
-      message: "Logged out successfully",
+      message: "Logged out",
     };
 
     res.status(200).json(response);

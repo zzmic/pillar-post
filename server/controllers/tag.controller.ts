@@ -88,7 +88,7 @@ export const createTag = async (req: Request, res: Response): Promise<void> => {
 
     const response: TagSuccessResponse<{ tag: TagInstance }> = {
       status: "success",
-      message: "Tag created successfully",
+      message: "Tag created",
       data: {
         tag: newTag,
       },
@@ -133,7 +133,7 @@ export const getAllTags = async (
       pagination: Record<string, unknown>;
     }> = {
       status: "success",
-      message: "Tags fetched successfully",
+      message: "Tags fetched",
       data: {
         tags,
         pagination: {
@@ -180,7 +180,7 @@ export const getTagByID = async (
 
     const response: TagSuccessResponse<{ tag: TagInstance }> = {
       status: "success",
-      message: "Tag fetched successfully",
+      message: "Tag fetched",
       data: { tag },
     };
 
@@ -215,7 +215,7 @@ export const getTagBySlug = async (
 
     const response: TagSuccessResponse<{ tag: TagInstance }> = {
       status: "success",
-      message: "Tag fetched successfully",
+      message: "Tag fetched",
       data: { tag },
     };
 
@@ -277,7 +277,7 @@ export const updateTag = async (req: Request, res: Response): Promise<void> => {
 
     const response: TagSuccessResponse<{ tag: TagInstance }> = {
       status: "success",
-      message: "Tag updated successfully",
+      message: "Tag updated",
       data: { tag },
     };
 
@@ -311,7 +311,7 @@ export const deleteTag = async (req: Request, res: Response): Promise<void> => {
 
     const response: TagSuccessResponse<Record<string, never>> = {
       status: "success",
-      message: "Tag deleted successfully",
+      message: "Tag deleted",
       data: {},
     };
 
