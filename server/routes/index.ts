@@ -1,5 +1,6 @@
 import { Router } from "express";
 
+import { sendApiError } from "../utils/api-envelope.js";
 import authRoutes from "./auth.routes.js";
 import categoryRoutes from "./category.routes.js";
 import commentRoutes from "./comment.routes.js";
@@ -35,10 +36,7 @@ router.post("/data", (req, res) => {
     return;
   }
 
-  res.status(400).json({
-    status: "error",
-    errorMessage: "No message provided in the request body",
-  });
+  sendApiError(res, 400, "No message provided in the request body");
 });
 
 export default router;

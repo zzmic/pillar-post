@@ -1,13 +1,14 @@
 import type { NextFunction, Request, Response } from "express";
 import { Op } from "sequelize";
 
-import db from "../models/index.js";
 import {
   buildPaginatedResponse,
   type PaginatedResponse,
   type PaginationOptions,
   getPaginationOptions,
 } from "../utils/pagination.utils.js";
+import { sendApiError } from "../utils/api-envelope.js";
+import { getSequelizeModel } from "../utils/sequelize-models.js";
 import { ensureUniquePostSlug, generateSlug } from "../utils/slug.utils.js";
 
 type Identifier = number | string;
@@ -39,71 +40,21 @@ interface PostModel {
   destroy: (options: Record<string, unknown>) => Promise<void>;
 }
 
-const getModel = <T>(model: unknown, modelName: string): T => {
-  if (
-    (typeof model !== "object" && typeof model !== "function") ||
-    model === null ||
-    typeof (model as { findAndCountAll?: unknown }).findAndCountAll !==
-      "function"
-  ) {
-    throw new Error(
-      `Model '${modelName}' is not available on the database instance.`,
-    );
-  }
+const getPosts = (): PostModel => getSequelizeModel<PostModel>("posts");
 
-  return model as T;
-};
+const getUsers = (): Record<string, unknown> =>
+  getSequelizeModel<Record<string, unknown>>("users");
 
-const getPosts = (): PostModel => {
-  const postsModel =
-    db.sequelize?.models?.posts || (db as Record<string, unknown>).posts;
-  return getModel<PostModel>(postsModel, "posts");
-};
+const getCategories = (): Record<string, unknown> =>
+  getSequelizeModel<Record<string, unknown>>("categories");
 
-const ensureReferenceModel = (
-  model: unknown,
-  modelName: string,
-): Record<string, unknown> => {
-  if (
-    (typeof model !== "object" && typeof model !== "function") ||
-    model === null
-  ) {
-    throw new Error(
-      `Model '${modelName}' is not available on the database instance.`,
-    );
-  }
-
-  return model as Record<string, unknown>;
-};
-
-const getUsers = (): Record<string, unknown> => {
-  const usersModel =
-    db.sequelize?.models?.users || (db as Record<string, unknown>).users;
-  return ensureReferenceModel(usersModel, "users");
-};
-
-const getCategories = (): Record<string, unknown> => {
-  const categoriesModel =
-    db.sequelize?.models?.categories ||
-    (db as Record<string, unknown>).categories;
-  return ensureReferenceModel(categoriesModel, "categories");
-};
-
-const getTags = (): Record<string, unknown> => {
-  const tagsModel =
-    db.sequelize?.models?.tags || (db as Record<string, unknown>).tags;
-  return ensureReferenceModel(tagsModel, "tags");
-};
+const getTags = (): Record<string, unknown> =>
+  getSequelizeModel<Record<string, unknown>>("tags");
 
 interface PostSuccessResponse<T> {
   status: "success";
   message: string;
   data: T;
-}
-
-interface PostFailResponse {
-  status: "fail" | "error";
-  message: string;
 }
 
 export const createPost = async (
@@ -116,29 +67,17 @@ export const createPost = async (
     const user = req.user;
 
     if (!user) {
-      const response: PostFailResponse = {
-        status: "fail",
-        message: "Authentication required",
-      };
-      res.status(401).json(response);
+      sendApiError(res, 401, "Authentication required");
       return;
     }
 
     if (typeof title !== "string" || title.trim().length === 0) {
-      const response: PostFailResponse = {
-        status: "fail",
-        message: "Title is required",
-      };
-      res.status(400).json(response);
+      sendApiError(res, 400, "Title is required");
       return;
     }
 
     if (typeof body !== "string" || body.trim().length === 0) {
-      const response: PostFailResponse = {
-        status: "fail",
-        message: "Body is required",
-      };
-      res.status(400).json(response);
+      sendApiError(res, 400, "Body is required");
       return;
     }
 
@@ -297,11 +236,7 @@ export const getPostById = async (
     });
 
     if (!post) {
-      const response: PostFailResponse = {
-        status: "fail",
-        message: "Post not found",
-      };
-      res.status(404).json(response);
+      sendApiError(res, 404, "Post not found");
       return;
     }
 
@@ -311,12 +246,11 @@ export const getPostById = async (
         !user ||
         (String(post.user_id) !== String(user.user_id) && user.role !== "admin")
       ) {
-        const response: PostFailResponse = {
-          status: "fail",
-          message:
-            "Access denied: You do not have permission to view this post",
-        };
-        res.status(403).json(response);
+        sendApiError(
+          res,
+          403,
+          "Access denied: You do not have permission to view this post",
+        );
         return;
       }
     }

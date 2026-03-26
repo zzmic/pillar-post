@@ -1,6 +1,10 @@
-import { Router, type RequestHandler } from "express";
+import { Router } from "express";
 
-import { isAuthenticated, isAuthor } from "../middleware/auth.middleware.js";
+import {
+  isAuthenticated,
+  isAuthor,
+  optionalAuthenticate,
+} from "../middleware/auth.middleware.js";
 import {
   postValidationRules,
   validate,
@@ -20,16 +24,6 @@ import {
 
 const router = Router();
 
-const optionalAuth: RequestHandler = (req, _res, next) => {
-  if (req.session?.user_id) {
-    req.user = {
-      user_id: req.session.user_id,
-      role: req.session.role,
-    };
-  }
-  next();
-};
-
 router.post(
   "/",
   isAuthenticated,
@@ -42,7 +36,12 @@ router.post(
 
 router.get("/", getAllPosts);
 
-router.get("/:post_id", optionalAuth, checkIfPostExistsById, getPostById);
+router.get(
+  "/:post_id",
+  optionalAuthenticate,
+  checkIfPostExistsById,
+  getPostById,
+);
 
 router.put(
   "/:post_id",

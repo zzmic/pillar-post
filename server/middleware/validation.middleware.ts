@@ -1,4 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
+
+import { sendApiError } from "../utils/api-envelope.js";
 import {
   body,
   validationResult,
@@ -51,9 +53,7 @@ export const validate = (
 
   const formattedErrors = collectValidationErrors(errors.array());
 
-  res.status(422).json({
-    status: "fail",
-    message: "Validation errors",
+  sendApiError(res, 422, "Validation errors", {
     errors: formattedErrors,
   });
 };

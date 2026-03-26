@@ -1,6 +1,9 @@
-import { Router, type RequestHandler } from "express";
+import { Router } from "express";
 
-import { isAuthenticated } from "../middleware/auth.middleware.js";
+import {
+  isAuthenticated,
+  optionalAuthenticate,
+} from "../middleware/auth.middleware.js";
 import {
   commentUpdateValidationRules,
   commentValidationRules,
@@ -15,16 +18,6 @@ import {
 
 const router = Router();
 
-const optionalAuth: RequestHandler = (req, _res, next) => {
-  if (req.session?.user_id) {
-    req.user = {
-      user_id: req.session.user_id,
-      role: req.session.role,
-    };
-  }
-  next();
-};
-
 router.post(
   "/posts/:post_id",
   isAuthenticated,
@@ -33,7 +26,7 @@ router.post(
   createComment,
 );
 
-router.get("/posts/:post_id", optionalAuth, getCommentsByPost);
+router.get("/posts/:post_id", optionalAuthenticate, getCommentsByPost);
 
 router.put(
   "/:comment_id",

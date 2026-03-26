@@ -1,8 +1,9 @@
 import type { NextFunction, Request, RequestHandler, Response } from "express";
 import sanitizeHtml from "sanitize-html";
 
-import db from "../models/index.js";
+import { sendApiError } from "../utils/api-envelope.js";
 import { ensureUniquePostSlug, generateSlug } from "../utils/slug.utils.js";
+import { getSequelizeModel } from "../utils/sequelize-models.js";
 
 type Identifier = string | number;
 
@@ -18,21 +19,7 @@ type PostModel = {
   }) => Promise<PostAttributes | null>;
 };
 
-interface DbModelMap {
-  posts?: unknown;
-}
-
-const models = db as DbModelMap;
-
-const Posts = models.posts as PostModel | undefined;
-
-const assertPostsModel = (): PostModel => {
-  if (!Posts) {
-    throw new Error("Posts model is not available on the database instance.");
-  }
-
-  return Posts;
-};
+const getPostsModel = (): PostModel => getSequelizeModel<PostModel>("posts");
 
 const getAuthenticatedUser = (
   req: Request,
@@ -65,21 +52,15 @@ export const checkPostOwnership: RequestHandler<PostParams> = async (
     const user = getAuthenticatedUser(req);
 
     if (!user?.user_id) {
-      res.status(401).json({
-        status: "fail",
-        message: "Unauthorized access: User not authenticated",
-      });
+      sendApiError(res, 401, "Unauthorized access: User not authenticated");
       return;
     }
 
-    const postsModel = assertPostsModel();
+    const postsModel = getPostsModel();
     const post = await postsModel.findByPk(postId);
 
     if (!post) {
-      res.status(404).json({
-        status: "fail",
-        message: "Post not found",
-      });
+      sendApiError(res, 404, "Post not found");
       return;
     }
 
@@ -87,10 +68,7 @@ export const checkPostOwnership: RequestHandler<PostParams> = async (
     const userIdentifier = toStringIdentifier(user.user_id);
 
     if (postOwner !== userIdentifier && user.role !== "admin") {
-      res.status(403).json({
-        status: "fail",
-        message: "Access denied: You do not own this post",
-      });
+      sendApiError(res, 403, "Access denied: You do not own this post");
       return;
     }
 
@@ -101,17 +79,15 @@ export const checkPostOwnership: RequestHandler<PostParams> = async (
     console.error("Error in checkPostOwnership middleware:", error);
 
     if (error instanceof Error && error.name === "CastError") {
-      res.status(400).json({
-        status: "fail",
-        message: "Invalid post ID format",
-      });
+      sendApiError(res, 400, "Invalid post ID format");
       return;
     }
 
-    res.status(500).json({
-      status: "error",
-      message: "Internal server error while checking post existence by ID",
-    });
+    sendApiError(
+      res,
+      500,
+      "Internal server error while checking post existence by ID",
+    );
   }
 };
 
@@ -122,14 +98,11 @@ export const checkIfPostExistsById: RequestHandler<PostParams> = async (
 ) => {
   try {
     const postId = req.params.post_id;
-    const postsModel = assertPostsModel();
+    const postsModel = getPostsModel();
     const post = await postsModel.findByPk(postId);
 
     if (!post) {
-      res.status(404).json({
-        status: "fail",
-        message: "Post not found",
-      });
+      sendApiError(res, 404, "Post not found");
       return;
     }
 
@@ -140,17 +113,15 @@ export const checkIfPostExistsById: RequestHandler<PostParams> = async (
     console.error("Error checking post existence by ID:", error);
 
     if (error instanceof Error && error.name === "CastError") {
-      res.status(400).json({
-        status: "fail",
-        message: "Failed to check post existence by ID",
-      });
+      sendApiError(res, 400, "Failed to check post existence by ID");
       return;
     }
 
-    res.status(500).json({
-      status: "error",
-      message: "Internal server error while checking post existence by ID",
-    });
+    sendApiError(
+      res,
+      500,
+      "Internal server error while checking post existence by ID",
+    );
   }
 };
 
@@ -166,10 +137,7 @@ export const generatePostSlugIfNeeded: RequestHandler<PostParams> = async (
     const postId = req.params.post_id ?? null;
 
     if (typeof title !== "string" || title.trim().length === 0) {
-      res.status(400).json({
-        status: "fail",
-        message: "Title is required to generate a slug",
-      });
+      sendApiError(res, 400, "Title is required to generate a slug");
       return;
     }
 
@@ -179,10 +147,7 @@ export const generatePostSlugIfNeeded: RequestHandler<PostParams> = async (
     const normalizedSlug = generateSlug(baseSlugSource);
 
     if (!normalizedSlug) {
-      res.status(400).json({
-        status: "fail",
-        message: "Unable to generate slug from the provided input",
-      });
+      sendApiError(res, 400, "Unable to generate slug from the provided input");
       return;
     }
 
@@ -192,10 +157,11 @@ export const generatePostSlugIfNeeded: RequestHandler<PostParams> = async (
     next();
   } catch (error) {
     console.error("Error generating post slug if needed:", error);
-    res.status(500).json({
-      status: "error",
-      message: "Internal server error while generating post slug if needed",
-    });
+    sendApiError(
+      res,
+      500,
+      "Internal server error while generating post slug if needed",
+    );
   }
 };
 
@@ -233,9 +199,10 @@ export const sanitizePostContent = (
     next();
   } catch (error) {
     console.error("Error sanitizing post content:", error);
-    res.status(500).json({
-      status: "error",
-      message: "Internal server error while sanitizing post content",
-    });
+    sendApiError(
+      res,
+      500,
+      "Internal server error while sanitizing post content",
+    );
   }
 };

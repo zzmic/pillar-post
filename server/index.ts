@@ -49,10 +49,7 @@ const PORT = Number(process.env.PORT) || 8080;
 const trustProxyEnv = process.env.TRUST_PROXY?.toLowerCase();
 if (trustProxyEnv === "true" || trustProxyEnv === "1") {
   const hops = Number.parseInt(process.env.TRUST_PROXY_HOPS ?? "1", 10);
-  app.set(
-    "trust proxy",
-    Number.isFinite(hops) && hops > 0 ? hops : 1,
-  );
+  app.set("trust proxy", Number.isFinite(hops) && hops > 0 ? hops : 1);
 }
 
 app.use(cookieParser());
@@ -106,6 +103,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 import apiRoutes from "./routes/index.js";
+import { sendApiError } from "./utils/api-envelope.js";
 
 app.use("/api/auth", authRouteLimiter);
 app.use("/api", apiLimiter);
@@ -172,12 +170,7 @@ app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
     }
   }
 
-  res.status(statusCode).json({
-    error: {
-      message,
-      statusCode,
-    },
-  });
+  sendApiError(res, statusCode, message);
 });
 
 // Remember to run the database migrations before starting the server.

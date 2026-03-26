@@ -2,8 +2,9 @@ import type { NextFunction, Request, Response } from "express";
 import type { Session, SessionData } from "express-session";
 import { Op } from "sequelize";
 
-import db from "../models/index.js";
 import { comparePassword, hashPassword } from "../utils/auth.utils.js";
+import { sendApiError } from "../utils/api-envelope.js";
+import { getSequelizeModel } from "../utils/sequelize-models.js";
 
 type Identifier = number | string;
 
@@ -21,25 +22,7 @@ interface UserModel {
   create: (values: Record<string, unknown>) => Promise<UserAttributes>;
 }
 
-const getModel = <T>(model: unknown, modelName: string): T => {
-  if (
-    (typeof model !== "object" && typeof model !== "function") ||
-    model === null ||
-    typeof (model as { findOne?: unknown }).findOne !== "function"
-  ) {
-    throw new Error(
-      `Model '${modelName}' is not available on the database instance.`,
-    );
-  }
-
-  return model as T;
-};
-
-const getUsers = (): UserModel => {
-  const usersModel =
-    db.sequelize?.models?.users || (db as Record<string, unknown>).users;
-  return getModel<UserModel>(usersModel, "users");
-};
+const getUsers = (): UserModel => getSequelizeModel<UserModel>("users");
 
 type SessionWithUser = Session & Partial<SessionData>;
 
@@ -56,11 +39,6 @@ interface AuthSuccessResponse {
   data?: {
     user: UserPayload;
   };
-}
-
-interface FailResponse {
-  status: "fail";
-  message: string;
 }
 
 interface SignUpBody {
@@ -102,11 +80,7 @@ export const signUp = async (
     const { username, email, password } = req.body as Partial<SignUpBody>;
 
     if (!username || !email || !password) {
-      const response: FailResponse = {
-        status: "fail",
-        message: "Username, email, and password are required.",
-      };
-      res.status(400).json(response);
+      sendApiError(res, 400, "Username, email, and password are required.");
       return;
     }
 
@@ -114,21 +88,13 @@ export const signUp = async (
       where: { username },
     });
     if (userByUsername) {
-      const response: FailResponse = {
-        status: "fail",
-        message: "Username has already been taken",
-      };
-      res.status(409).json(response);
+      sendApiError(res, 409, "Username has already been taken");
       return;
     }
 
     const userByEmail = await getUsers().findOne({ where: { email } });
     if (userByEmail) {
-      const response: FailResponse = {
-        status: "fail",
-        message: "Email has already been taken",
-      };
-      res.status(409).json(response);
+      sendApiError(res, 409, "Email has already been taken");
       return;
     }
 
@@ -165,11 +131,7 @@ export const logIn = async (
     const { identifier, password } = req.body as Partial<LogInBody>;
 
     if (!identifier || !password) {
-      const response: FailResponse = {
-        status: "fail",
-        message: "Identifier and password are required.",
-      };
-      res.status(400).json(response);
+      sendApiError(res, 400, "Identifier and password are required.");
       return;
     }
 
@@ -180,21 +142,13 @@ export const logIn = async (
     });
 
     if (!user || typeof user.password !== "string") {
-      const response: FailResponse = {
-        status: "fail",
-        message: "Invalid credentials: user not found",
-      };
-      res.status(401).json(response);
+      sendApiError(res, 401, "Invalid credentials: user not found");
       return;
     }
 
     const isMatch = await comparePassword(password, user.password);
     if (!isMatch) {
-      const response: FailResponse = {
-        status: "fail",
-        message: "Invalid credentials: password is incorrect",
-      };
-      res.status(401).json(response);
+      sendApiError(res, 401, "Invalid credentials: password is incorrect");
       return;
     }
 

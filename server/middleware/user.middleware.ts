@@ -1,4 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
+
+import { sendApiError } from "../utils/api-envelope.js";
 import type { Session, SessionData } from "express-session";
 
 type SessionWithUser = Session & Partial<SessionData>;
@@ -49,10 +51,7 @@ export const canUpdateProfile = (
   const targetUserId = parseUserId(req.params.id);
 
   if (!isValidUserId(targetUserId)) {
-    res.status(400).json({
-      status: "fail",
-      message: "Invalid user ID provided",
-    });
+    sendApiError(res, 400, "Invalid user ID provided");
     return;
   }
 
@@ -62,10 +61,7 @@ export const canUpdateProfile = (
   }
 
   if (sessionUserId !== targetUserId) {
-    res.status(403).json({
-      status: "fail",
-      message: "You can only update your own profile",
-    });
+    sendApiError(res, 403, "You can only update your own profile");
     return;
   }
 
@@ -80,10 +76,7 @@ export const validateUserId = (
   const userId = parseUserId(req.params.id);
 
   if (!isValidUserId(userId)) {
-    res.status(400).json({
-      status: "fail",
-      message: "Invalid user ID provided",
-    });
+    sendApiError(res, 400, "Invalid user ID provided");
     return;
   }
 

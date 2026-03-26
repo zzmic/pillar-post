@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 
-import db from "../models/index.js";
+import { sendApiError } from "../utils/api-envelope.js";
+import { getSequelizeModel } from "../utils/sequelize-models.js";
 
 type Identifier = string | number;
 
@@ -19,33 +20,10 @@ type TagModel = {
   }) => Promise<TagAttributes | null>;
 };
 
-type PostsModel = Record<string, unknown>;
+const getTagModel = (): TagModel => getSequelizeModel<TagModel>("tags");
 
-interface DbModelMap {
-  tags?: unknown;
-  posts?: unknown;
-}
-
-const models = db as DbModelMap;
-
-const Tags = models.tags as TagModel | undefined;
-const Posts = models.posts as PostsModel | undefined;
-
-const assertTagModel = (): TagModel => {
-  if (!Tags) {
-    throw new Error("Tags model is not available on the database instance.");
-  }
-
-  return Tags;
-};
-
-const assertPostsModel = (): PostsModel => {
-  if (!Posts) {
-    throw new Error("Posts model is not available on the database instance.");
-  }
-
-  return Posts;
-};
+const getPostsModel = (): Record<string, unknown> =>
+  getSequelizeModel<Record<string, unknown>>("posts");
 
 type TagRequest = Request & {
   tag?: TagAttributes;
@@ -58,14 +36,11 @@ export const checkIfTagExistsById = async (
 ): Promise<void> => {
   try {
     const tagId = req.params.tag_id as string | undefined;
-    const tagModel = assertTagModel();
+    const tagModel = getTagModel();
     const tag = tagId ? await tagModel.findByPk(tagId) : null;
 
     if (!tag) {
-      res.status(404).json({
-        status: "fail",
-        message: "Tag not found",
-      });
+      sendApiError(res, 404, "Tag not found");
       return;
     }
 
@@ -73,17 +48,7 @@ export const checkIfTagExistsById = async (
     next();
   } catch (error) {
     console.error("Error checking tag existence by ID:", error);
-
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to check tag existence by ID";
-
-    res.status(500).json({
-      status: "fail",
-      message: "Failed to check tag existence by ID",
-      error: message,
-    });
+    sendApiError(res, 500, "Failed to check tag existence by ID");
   }
 };
 
@@ -94,14 +59,11 @@ export const checkIfTagExistsBySlug = async (
 ): Promise<void> => {
   try {
     const slug = req.params.slug as string | undefined;
-    const tagModel = assertTagModel();
+    const tagModel = getTagModel();
     const tag = slug ? await tagModel.findOne({ where: { slug } }) : null;
 
     if (!tag) {
-      res.status(404).json({
-        status: "fail",
-        message: "Tag not found",
-      });
+      sendApiError(res, 404, "Tag not found");
       return;
     }
 
@@ -109,17 +71,7 @@ export const checkIfTagExistsBySlug = async (
     next();
   } catch (error) {
     console.error("Error checking tag existence by slug:", error);
-
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to check tag existence by slug";
-
-    res.status(500).json({
-      status: "fail",
-      message: "Failed to check tag existence by slug",
-      error: message,
-    });
+    sendApiError(res, 500, "Failed to check tag existence by slug");
   }
 };
 
@@ -131,18 +83,12 @@ export const checkTagPermissions = (
   const user = req.user;
 
   if (!user) {
-    res.status(401).json({
-      status: "fail",
-      message: "Authentication required",
-    });
+    sendApiError(res, 401, "Authentication required");
     return;
   }
 
   if (user.role !== "admin") {
-    res.status(403).json({
-      status: "fail",
-      message: "Admin privileges required to manage tags",
-    });
+    sendApiError(res, 403, "Admin privileges required to manage tags");
     return;
   }
 
@@ -156,8 +102,8 @@ export const checkTagDependencies = async (
 ): Promise<void> => {
   try {
     const tagId = req.params.tag_id as string | undefined;
-    const tagModel = assertTagModel();
-    const postsModel = assertPostsModel();
+    const tagModel = getTagModel();
+    const postsModel = getPostsModel();
 
     const tag = tagId
       ? await tagModel.findByPk(tagId, {
@@ -172,19 +118,16 @@ export const checkTagDependencies = async (
       : null;
 
     if (!tag) {
-      res.status(404).json({
-        status: "fail",
-        message: "Tag not found",
-      });
+      sendApiError(res, 404, "Tag not found");
       return;
     }
 
     if (Array.isArray(tag.posts) && tag.posts.length > 0) {
-      res.status(400).json({
-        status: "fail",
-        message:
-          "Cannot delete tag that is associated with posts. Remove tag from all posts first",
-      });
+      sendApiError(
+        res,
+        400,
+        "Cannot delete tag that is associated with posts. Remove tag from all posts first",
+      );
       return;
     }
 
@@ -192,16 +135,6 @@ export const checkTagDependencies = async (
     next();
   } catch (error) {
     console.error("Error checking tag dependencies:", error);
-
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Failed to check tag dependencies";
-
-    res.status(500).json({
-      status: "fail",
-      message: "Failed to check tag dependencies",
-      error: message,
-    });
+    sendApiError(res, 500, "Failed to check tag dependencies");
   }
 };

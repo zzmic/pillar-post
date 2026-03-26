@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 
-import db from "../models/index.js";
+import { sendApiError } from "../utils/api-envelope.js";
+import { getSequelizeModel } from "../utils/sequelize-models.js";
 
 type Identifier = string | number;
 
@@ -13,23 +14,8 @@ type CommentModel = {
   findByPk: (id: unknown) => Promise<CommentAttributes | null>;
 };
 
-interface DbModelMap {
-  comments?: unknown;
-}
-
-const models = db as DbModelMap;
-
-const Comments = models.comments as CommentModel | undefined;
-
-const assertCommentsModel = (): CommentModel => {
-  if (!Comments) {
-    throw new Error(
-      "Comments model is not available on the database instance.",
-    );
-  }
-
-  return Comments;
-};
+const getCommentsModel = (): CommentModel =>
+  getSequelizeModel<CommentModel>("comments");
 
 type CommentRequest = Request & {
   comment?: CommentAttributes;
@@ -42,15 +28,12 @@ export const checkIfCommentExists = async (
 ): Promise<void> => {
   try {
     const commentId = req.params.comment_id as string | undefined;
-    const commentsModel = assertCommentsModel();
+    const commentsModel = getCommentsModel();
 
     const comment = commentId ? await commentsModel.findByPk(commentId) : null;
 
     if (!comment) {
-      res.status(404).json({
-        status: "fail",
-        message: "Comment not found",
-      });
+      sendApiError(res, 404, "Comment not found");
       return;
     }
 
@@ -71,18 +54,16 @@ export const checkCommentOwnership = (
   const comment = (req as CommentRequest).comment;
 
   if (!user) {
-    res.status(401).json({
-      status: "fail",
-      message: "Authentication required",
-    });
+    sendApiError(res, 401, "Authentication required");
     return;
   }
 
   if (!comment) {
-    res.status(400).json({
-      status: "fail",
-      message: "Comment details are missing from the request context",
-    });
+    sendApiError(
+      res,
+      400,
+      "Comment details are missing from the request context",
+    );
     return;
   }
 
@@ -91,8 +72,9 @@ export const checkCommentOwnership = (
     return;
   }
 
-  res.status(403).json({
-    status: "fail",
-    message: "Access denied: You can only modify your own comments",
-  });
+  sendApiError(
+    res,
+    403,
+    "Access denied: You can only modify your own comments",
+  );
 };

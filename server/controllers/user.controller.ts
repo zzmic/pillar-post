@@ -2,7 +2,8 @@ import type { NextFunction, Request, Response } from "express";
 import type { Session, SessionData } from "express-session";
 import { Op } from "sequelize";
 
-import db from "../models/index.js";
+import { sendApiError } from "../utils/api-envelope.js";
+import { getSequelizeModel } from "../utils/sequelize-models.js";
 
 type Identifier = number | string;
 
@@ -26,25 +27,7 @@ interface UserModel {
   findOne: (options: Record<string, unknown>) => Promise<UserInstance | null>;
 }
 
-const getModel = <T>(model: unknown, modelName: string): T => {
-  if (
-    (typeof model !== "object" && typeof model !== "function") ||
-    model === null ||
-    typeof (model as { findByPk?: unknown }).findByPk !== "function"
-  ) {
-    throw new Error(
-      `Model '${modelName}' is not available on the database instance.`,
-    );
-  }
-
-  return model as T;
-};
-
-const getUsers = (): UserModel => {
-  const usersModel =
-    db.sequelize?.models?.users || (db as Record<string, unknown>).users;
-  return getModel<UserModel>(usersModel, "users");
-};
+const getUsers = (): UserModel => getSequelizeModel<UserModel>("users");
 
 type SessionWithUser = Session & Partial<SessionData>;
 
@@ -52,12 +35,6 @@ interface UserSuccessResponse<T> {
   status: "success";
   message: string;
   data: T;
-}
-
-interface UserFailResponse {
-  status: "fail" | "error";
-  message: string;
-  errors?: Record<string, string[]>;
 }
 
 const parseUserId = (value: unknown): number | null => {
@@ -74,11 +51,7 @@ export const getUserProfile = async (
     const userId = parseUserId(req.params.id);
 
     if (!userId) {
-      const response: UserFailResponse = {
-        status: "fail",
-        message: "Invalid user ID provided",
-      };
-      res.status(400).json(response);
+      sendApiError(res, 400, "Invalid user ID provided");
       return;
     }
 
@@ -87,11 +60,7 @@ export const getUserProfile = async (
     });
 
     if (!user) {
-      const response: UserFailResponse = {
-        status: "fail",
-        message: "User not found",
-      };
-      res.status(404).json(response);
+      sendApiError(res, 404, "User not found");
       return;
     }
 
@@ -118,20 +87,16 @@ export const updateUserProfile = async (
     const session = req.session as SessionWithUser | undefined;
 
     if (!userId) {
-      const response: UserFailResponse = {
-        status: "fail",
-        message: "Invalid user ID provided",
-      };
-      res.status(400).json(response);
+      sendApiError(res, 400, "Invalid user ID provided");
       return;
     }
 
     if (!session || (session.role !== "admin" && session.user_id !== userId)) {
-      const response: UserFailResponse = {
-        status: "fail",
-        message: "Access denied. You can only update your own profile",
-      };
-      res.status(403).json(response);
+      sendApiError(
+        res,
+        403,
+        "Access denied. You can only update your own profile",
+      );
       return;
     }
 
@@ -146,14 +111,9 @@ export const updateUserProfile = async (
         },
       });
       if (existingUser) {
-        const response: UserFailResponse = {
-          status: "fail",
-          message: "Validation errors",
-          errors: {
-            username: ["Username is already taken"],
-          },
-        };
-        res.status(422).json(response);
+        sendApiError(res, 422, "Validation errors", {
+          errors: { username: ["Username is already taken"] },
+        });
         return;
       }
     }
@@ -166,25 +126,16 @@ export const updateUserProfile = async (
         },
       });
       if (existingUser) {
-        const response: UserFailResponse = {
-          status: "fail",
-          message: "Validation errors",
-          errors: {
-            email: ["Email is already taken"],
-          },
-        };
-        res.status(422).json(response);
+        sendApiError(res, 422, "Validation errors", {
+          errors: { email: ["Email is already taken"] },
+        });
         return;
       }
     }
 
     const user = await getUsers().findByPk(userId);
     if (!user) {
-      const response: UserFailResponse = {
-        status: "fail",
-        message: "User not found",
-      };
-      res.status(404).json(response);
+      sendApiError(res, 404, "User not found");
       return;
     }
 

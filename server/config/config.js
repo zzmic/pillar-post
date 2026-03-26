@@ -12,7 +12,9 @@ function databaseName(suffix) {
     return `${base}_${suffix}`;
   }
   if (suffix === "prod" && process.env.NODE_ENV === "production") {
-    throw new Error("DB_NAME environment variable is required in production (fail fast).");
+    throw new Error(
+      "DB_NAME environment variable is required in production (fail fast).",
+    );
   }
   return `${DEFAULT_DB_BASE}_${suffix}`;
 }

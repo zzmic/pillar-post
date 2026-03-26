@@ -349,6 +349,7 @@ describe("slug.utils", () => {
         status: "fail",
         message:
           "Invalid slug format. Slug must contain only lowercase letters, numbers, and hyphens, and cannot start or end with a hyphen.",
+        statusCode: 400,
       });
       expect(mockNext).not.toHaveBeenCalled();
     });
@@ -399,6 +400,7 @@ describe("slug.utils", () => {
       expect(mockRes.json).toHaveBeenCalledWith({
         status: "fail",
         message: "Slug must be between 1 and 100 characters long.",
+        statusCode: 400,
       });
       expect(mockNext).not.toHaveBeenCalled();
     });
@@ -531,6 +533,7 @@ describe("slug.utils", () => {
           status: "error",
           message:
             "Internal server error while generating category slug if needed",
+          statusCode: 500,
         });
         expect(mockNext).not.toHaveBeenCalled();
       } finally {
@@ -656,6 +659,7 @@ describe("slug.utils", () => {
         expect(mockRes.json).toHaveBeenCalledWith({
           status: "error",
           message: "Internal server error while generating tag slug if needed",
+          statusCode: 500,
         });
         expect(mockNext).not.toHaveBeenCalled();
       } finally {

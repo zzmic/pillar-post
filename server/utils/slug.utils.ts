@@ -1,7 +1,8 @@
 import type { NextFunction, Request, RequestHandler, Response } from "express";
 import { Op } from "sequelize";
 
-import db from "../models/index.js";
+import { sendApiError } from "./api-envelope.js";
+import { getSequelizeModel } from "./sequelize-models.js";
 
 const assertNonEmptyString = (value: unknown, errorMessage: string): string => {
   if (typeof value !== "string" || value.trim().length === 0) {
@@ -19,38 +20,12 @@ interface SlugModel {
   }) => Promise<Record<string, unknown> | null>;
 }
 
-const getModel = (model: unknown, modelName: string): SlugModel => {
-  if (
-    (typeof model !== "object" && typeof model !== "function") ||
-    model === null ||
-    typeof (model as { findOne?: unknown }).findOne !== "function"
-  ) {
-    throw new Error(
-      `Model '${modelName}' is not available on the database instance.`,
-    );
-  }
+const getPosts = (): SlugModel => getSequelizeModel<SlugModel>("posts");
 
-  return model as SlugModel;
-};
+const getCategories = (): SlugModel =>
+  getSequelizeModel<SlugModel>("categories");
 
-const getPosts = (): SlugModel => {
-  const postsModel =
-    db.sequelize?.models?.posts || (db as Record<string, unknown>).posts;
-  return getModel(postsModel, "posts");
-};
-
-const getCategories = (): SlugModel => {
-  const categoriesModel =
-    db.sequelize?.models?.categories ||
-    (db as Record<string, unknown>).categories;
-  return getModel(categoriesModel, "categories");
-};
-
-const getTags = (): SlugModel => {
-  const tagsModel =
-    db.sequelize?.models?.tags || (db as Record<string, unknown>).tags;
-  return getModel(tagsModel, "tags");
-};
+const getTags = (): SlugModel => getSequelizeModel<SlugModel>("tags");
 
 export const generateSlug = (titleInput: unknown): string => {
   const title = assertNonEmptyString(
@@ -195,19 +170,16 @@ export const validateSlugFormat = (
     const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
     if (!slugPattern.test(slugString)) {
-      res.status(400).json({
-        status: "fail",
-        message:
-          "Invalid slug format. Slug must contain only lowercase letters, numbers, and hyphens, and cannot start or end with a hyphen.",
-      });
+      sendApiError(
+        res,
+        400,
+        "Invalid slug format. Slug must contain only lowercase letters, numbers, and hyphens, and cannot start or end with a hyphen.",
+      );
       return;
     }
 
     if (slugString.length < 1 || slugString.length > 100) {
-      res.status(400).json({
-        status: "fail",
-        message: "Slug must be between 1 and 100 characters long.",
-      });
+      sendApiError(res, 400, "Slug must be between 1 and 100 characters long.");
       return;
     }
   }
@@ -242,10 +214,11 @@ export const generateCategorySlugIfNeeded: RequestHandler<
     next();
   } catch (error) {
     console.error("Error generating category slug if needed:", error);
-    res.status(500).json({
-      status: "error",
-      message: "Internal server error while generating category slug if needed",
-    });
+    sendApiError(
+      res,
+      500,
+      "Internal server error while generating category slug if needed",
+    );
   }
 };
 
@@ -273,9 +246,10 @@ export const generateTagSlugIfNeeded: RequestHandler<
     next();
   } catch (error) {
     console.error("Error generating tag slug if needed:", error);
-    res.status(500).json({
-      status: "error",
-      message: "Internal server error while generating tag slug if needed",
-    });
+    sendApiError(
+      res,
+      500,
+      "Internal server error while generating tag slug if needed",
+    );
   }
 };

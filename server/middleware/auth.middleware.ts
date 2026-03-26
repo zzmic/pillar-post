@@ -1,4 +1,4 @@
-import type { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, RequestHandler, Response } from "express";
 import type { Session, SessionData } from "express-session";
 
 type SessionWithUser = Session & Partial<SessionData>;
@@ -42,6 +42,17 @@ export const isAuthenticated = (
   }
 
   next(createHttpError("Authentication required: Please sign in", 401));
+};
+
+export const optionalAuthenticate: RequestHandler = (req, _res, next) => {
+  const session = req.session as SessionWithUser | undefined;
+  if (session?.user_id) {
+    req.user = {
+      user_id: session.user_id,
+      role: session.role,
+    } satisfies Express.AuthenticatedUser;
+  }
+  next();
 };
 
 export const isAdmin = (

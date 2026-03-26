@@ -1,7 +1,8 @@
 import type { Request, Response } from "express";
 import { Op } from "sequelize";
 
-import db from "../models/index.js";
+import { sendApiError } from "../utils/api-envelope.js";
+import { getSequelizeModel } from "../utils/sequelize-models.js";
 
 type Identifier = number | string;
 
@@ -25,36 +26,12 @@ interface TagModel {
   ) => Promise<{ count: number; rows: TagInstance[] }>;
 }
 
-const getModel = <T>(model: unknown, modelName: string): T => {
-  if (
-    (typeof model !== "object" && typeof model !== "function") ||
-    model === null ||
-    typeof (model as { create?: unknown }).create !== "function"
-  ) {
-    throw new Error(
-      `Model '${modelName}' is not available on the database instance.`,
-    );
-  }
-
-  return model as T;
-};
-
-const getTags = (): TagModel => {
-  const tagsModel =
-    db.sequelize?.models?.tags || (db as Record<string, unknown>).tags;
-  return getModel<TagModel>(tagsModel, "tags");
-};
+const getTags = (): TagModel => getSequelizeModel<TagModel>("tags");
 
 interface TagSuccessResponse<T> {
   status: "success";
   message: string;
   data?: T;
-}
-
-interface TagFailResponse {
-  status: "fail" | "error";
-  message: string;
-  error?: string;
 }
 
 export const createTag = async (req: Request, res: Response): Promise<void> => {
@@ -68,11 +45,7 @@ export const createTag = async (req: Request, res: Response): Promise<void> => {
     });
 
     if (existingTag) {
-      const response: TagFailResponse = {
-        status: "fail",
-        message: "Tag with this name or slug already exists",
-      };
-      res.status(400).json(response);
+      sendApiError(res, 400, "Tag with this name or slug already exists");
       return;
     }
 
@@ -97,12 +70,7 @@ export const createTag = async (req: Request, res: Response): Promise<void> => {
     res.status(201).json(response);
   } catch (error) {
     console.error("Error creating tag:", error);
-    const response: TagFailResponse = {
-      status: "fail",
-      message: "Failed to create tag",
-      error: error instanceof Error ? error.message : undefined,
-    };
-    res.status(500).json(response);
+    sendApiError(res, 500, "Failed to create tag");
   }
 };
 
@@ -152,12 +120,7 @@ export const getAllTags = async (
     res.status(200).json(response);
   } catch (error) {
     console.error("Error fetching tags:", error);
-    const response: TagFailResponse = {
-      status: "fail",
-      message: "Failed to fetch tags",
-      error: error instanceof Error ? error.message : undefined,
-    };
-    res.status(500).json(response);
+    sendApiError(res, 500, "Failed to fetch tags");
   }
 };
 
@@ -170,11 +133,7 @@ export const getTagByID = async (
     const tag = await getTags().findByPk(tagId);
 
     if (!tag) {
-      const response: TagFailResponse = {
-        status: "fail",
-        message: "Tag not found",
-      };
-      res.status(404).json(response);
+      sendApiError(res, 404, "Tag not found");
       return;
     }
 
@@ -187,12 +146,7 @@ export const getTagByID = async (
     res.status(200).json(response);
   } catch (error) {
     console.error("Error fetching tag:", error);
-    const response: TagFailResponse = {
-      status: "fail",
-      message: "Failed to fetch tag",
-      error: error instanceof Error ? error.message : undefined,
-    };
-    res.status(500).json(response);
+    sendApiError(res, 500, "Failed to fetch tag");
   }
 };
 
@@ -205,11 +159,7 @@ export const getTagBySlug = async (
     const tag = await getTags().findOne({ where: { slug } });
 
     if (!tag) {
-      const response: TagFailResponse = {
-        status: "fail",
-        message: "Tag not found",
-      };
-      res.status(404).json(response);
+      sendApiError(res, 404, "Tag not found");
       return;
     }
 
@@ -222,12 +172,7 @@ export const getTagBySlug = async (
     res.status(200).json(response);
   } catch (error) {
     console.error("Error fetching tag:", error);
-    const response: TagFailResponse = {
-      status: "fail",
-      message: "Failed to fetch tag",
-      error: error instanceof Error ? error.message : undefined,
-    };
-    res.status(500).json(response);
+    sendApiError(res, 500, "Failed to fetch tag");
   }
 };
 
@@ -238,11 +183,7 @@ export const updateTag = async (req: Request, res: Response): Promise<void> => {
 
     const tag = await getTags().findByPk(tagId);
     if (!tag) {
-      const response: TagFailResponse = {
-        status: "fail",
-        message: "Tag not found",
-      };
-      res.status(404).json(response);
+      sendApiError(res, 404, "Tag not found");
       return;
     }
 
@@ -261,11 +202,7 @@ export const updateTag = async (req: Request, res: Response): Promise<void> => {
       });
 
       if (existingTag) {
-        const response: TagFailResponse = {
-          status: "fail",
-          message: "Tag with this name or slug already exists",
-        };
-        res.status(400).json(response);
+        sendApiError(res, 400, "Tag with this name or slug already exists");
         return;
       }
     }
@@ -284,12 +221,7 @@ export const updateTag = async (req: Request, res: Response): Promise<void> => {
     res.status(200).json(response);
   } catch (error) {
     console.error("Error updating tag:", error);
-    const response: TagFailResponse = {
-      status: "fail",
-      message: "Failed to update tag",
-      error: error instanceof Error ? error.message : undefined,
-    };
-    res.status(500).json(response);
+    sendApiError(res, 500, "Failed to update tag");
   }
 };
 
@@ -299,11 +231,7 @@ export const deleteTag = async (req: Request, res: Response): Promise<void> => {
     const tag = await getTags().findByPk(tagId);
 
     if (!tag) {
-      const response: TagFailResponse = {
-        status: "fail",
-        message: "Tag not found",
-      };
-      res.status(404).json(response);
+      sendApiError(res, 404, "Tag not found");
       return;
     }
 
@@ -318,11 +246,6 @@ export const deleteTag = async (req: Request, res: Response): Promise<void> => {
     res.status(200).json(response);
   } catch (error) {
     console.error("Error deleting tag:", error);
-    const response: TagFailResponse = {
-      status: "fail",
-      message: "Failed to delete tag",
-      error: error instanceof Error ? error.message : undefined,
-    };
-    res.status(500).json(response);
+    sendApiError(res, 500, "Failed to delete tag");
   }
 };

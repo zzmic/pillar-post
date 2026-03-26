@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 
-import db from "../models/index.js";
+import { sendApiError } from "../utils/api-envelope.js";
+import { getSequelizeModel } from "../utils/sequelize-models.js";
 
 type Identifier = string | number;
 
@@ -19,31 +20,10 @@ type PostsModel = {
   count: (options?: Record<string, unknown>) => Promise<number>;
 };
 
-interface DbModelMap {
-  categories?: unknown;
-  posts?: unknown;
-}
+const getCategoryModel = (): CategoryModel =>
+  getSequelizeModel<CategoryModel>("categories");
 
-const models = db as DbModelMap;
-
-const Category = models.categories as CategoryModel | undefined;
-const Posts = models.posts as PostsModel | undefined;
-
-const assertCategoryModel = (): CategoryModel => {
-  if (!Category) {
-    throw new Error(
-      "Category model is not available on the database instance.",
-    );
-  }
-  return Category;
-};
-
-const assertPostsModel = (): PostsModel => {
-  if (!Posts) {
-    throw new Error("Posts model is not available on the database instance.");
-  }
-  return Posts;
-};
+const getPostsModel = (): PostsModel => getSequelizeModel<PostsModel>("posts");
 
 type CategoryRequest = Request & {
   category?: CategoryAttributes;
@@ -52,7 +32,7 @@ type CategoryRequest = Request & {
 const findCategoryById = async (
   categoryId: string | undefined,
 ): Promise<CategoryAttributes | null> => {
-  const categoryModel = assertCategoryModel();
+  const categoryModel = getCategoryModel();
   if (!categoryId) {
     return null;
   }
@@ -63,7 +43,7 @@ const findCategoryById = async (
 const findCategoryBySlug = async (
   slug: string | undefined,
 ): Promise<CategoryAttributes | null> => {
-  const categoryModel = assertCategoryModel();
+  const categoryModel = getCategoryModel();
   if (!slug) {
     return null;
   }
@@ -82,10 +62,7 @@ export const checkIfCategoryExistsById = async (
     const category = await findCategoryById(categoryId);
 
     if (!category) {
-      res.status(404).json({
-        status: "fail",
-        message: "Category not found",
-      });
+      sendApiError(res, 404, "Category not found");
       return;
     }
 
@@ -95,10 +72,7 @@ export const checkIfCategoryExistsById = async (
     console.error("Error checking category existence by ID:", error);
 
     if (error instanceof Error && error.name === "CastError") {
-      res.status(400).json({
-        status: "fail",
-        message: "Failed to check category existence by ID",
-      });
+      sendApiError(res, 400, "Failed to check category existence by ID");
       return;
     }
 
@@ -117,10 +91,7 @@ export const checkIfCategoryExistsBySlug = async (
     const category = await findCategoryBySlug(slug);
 
     if (!category) {
-      res.status(404).json({
-        status: "fail",
-        message: "Category not found",
-      });
+      sendApiError(res, 404, "Category not found");
       return;
     }
 
@@ -140,19 +111,16 @@ export const checkCategoryPermissions = (
   const user = req.user;
 
   if (!user) {
-    res.status(401).json({
-      status: "fail",
-      message: "Authentication required: Please sign in",
-    });
+    sendApiError(res, 401, "Authentication required: Please sign in");
     return;
   }
 
   if (user.role !== "admin") {
-    res.status(403).json({
-      status: "fail",
-      message:
-        "Access denied: Administrator privileges required for category management",
-    });
+    sendApiError(
+      res,
+      403,
+      "Access denied: Administrator privileges required for category management",
+    );
     return;
   }
 
@@ -168,19 +136,20 @@ export const checkCategoryDependencies = async (
     const categoryRequest = req as CategoryRequest;
     const category = categoryRequest.category;
     if (!category?.category_id) {
-      res.status(400).json({
-        status: "fail",
-        message: "Category details are missing from the request context",
-      });
+      sendApiError(
+        res,
+        400,
+        "Category details are missing from the request context",
+      );
       return;
     }
 
-    const postsModel = assertPostsModel();
+    const postsModel = getPostsModel();
 
     const postCount = await postsModel.count({
       include: [
         {
-          model: assertCategoryModel(),
+          model: getCategoryModel(),
           as: "categories",
           where: { category_id: category.category_id },
         },
@@ -188,22 +157,26 @@ export const checkCategoryDependencies = async (
     });
 
     if (postCount > 0) {
-      res.status(409).json({
-        status: "fail",
-        message: `Cannot delete category. It is associated with ${String(postCount)} post(s). Please remove the category from all posts before deletion.`,
-        data: {
-          associatedPosts: postCount,
+      sendApiError(
+        res,
+        409,
+        `Cannot delete category. It is associated with ${String(postCount)} post(s). Please remove the category from all posts before deletion.`,
+        {
+          data: {
+            associatedPosts: postCount,
+          },
         },
-      });
+      );
       return;
     }
 
     next();
   } catch (error) {
     console.error("Error checking category dependencies:", error);
-    res.status(500).json({
-      status: "error",
-      message: "Internal server error while checking category dependencies",
-    });
+    sendApiError(
+      res,
+      500,
+      "Internal server error while checking category dependencies",
+    );
   }
 };

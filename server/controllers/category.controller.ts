@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 
-import db from "../models/index.js";
+import { sendApiError } from "../utils/api-envelope.js";
+import { getSequelizeModel } from "../utils/sequelize-models.js";
 
 type Identifier = number | string;
 
@@ -21,37 +22,13 @@ interface CategoryModel {
   findByPk: (id: unknown) => Promise<CategoryInstance | null>;
 }
 
-const getModel = <T>(model: unknown, modelName: string): T => {
-  if (
-    (typeof model !== "object" && typeof model !== "function") ||
-    model === null ||
-    typeof (model as { create?: unknown }).create !== "function"
-  ) {
-    throw new Error(
-      `Model '${modelName}' is not available on the database instance.`,
-    );
-  }
-
-  return model as T;
-};
-
-const getCategory = (): CategoryModel => {
-  const categoriesModel =
-    db.sequelize?.models?.categories ||
-    (db as Record<string, unknown>).categories;
-  return getModel<CategoryModel>(categoriesModel, "categories");
-};
+const getCategory = (): CategoryModel =>
+  getSequelizeModel<CategoryModel>("categories");
 
 interface CategorySuccessResponse<T> {
   status: "success";
   message: string;
   data?: T;
-}
-
-interface CategoryFailResponse {
-  status: "fail" | "error";
-  message: string;
-  data?: Record<string, unknown>;
 }
 
 export const createCategory = async (
@@ -83,19 +60,15 @@ export const createCategory = async (
       error instanceof Error &&
       error.name === "SequelizeUniqueConstraintError"
     ) {
-      const response: CategoryFailResponse = {
-        status: "fail",
-        message: "A category with this name or slug already exists",
-      };
-      res.status(409).json(response);
+      sendApiError(
+        res,
+        409,
+        "A category with this name or slug already exists",
+      );
       return;
     }
 
-    const response: CategoryFailResponse = {
-      status: "error",
-      message: "Internal server error while creating category",
-    };
-    res.status(500).json(response);
+    sendApiError(res, 500, "Internal server error while creating category");
   }
 };
 
@@ -106,11 +79,7 @@ export const updateCategory = async (
   try {
     const category = req.category as CategoryInstance | undefined;
     if (!category) {
-      const response: CategoryFailResponse = {
-        status: "error",
-        message: "Category not found in request context",
-      };
-      res.status(500).json(response);
+      sendApiError(res, 500, "Category not found in request context");
       return;
     }
 
@@ -139,19 +108,15 @@ export const updateCategory = async (
       error instanceof Error &&
       error.name === "SequelizeUniqueConstraintError"
     ) {
-      const response: CategoryFailResponse = {
-        status: "fail",
-        message: "A category with this name or slug already exists",
-      };
-      res.status(409).json(response);
+      sendApiError(
+        res,
+        409,
+        "A category with this name or slug already exists",
+      );
       return;
     }
 
-    const response: CategoryFailResponse = {
-      status: "error",
-      message: "Internal server error while updating category",
-    };
-    res.status(500).json(response);
+    sendApiError(res, 500, "Internal server error while updating category");
   }
 };
 
@@ -163,11 +128,7 @@ export const deleteCategory = async (
     const category = req.category as CategoryInstance | undefined;
 
     if (!category) {
-      const response: CategoryFailResponse = {
-        status: "error",
-        message: "Category not found in request context",
-      };
-      res.status(500).json(response);
+      sendApiError(res, 500, "Category not found in request context");
       return;
     }
 
@@ -181,10 +142,6 @@ export const deleteCategory = async (
     res.status(200).json(response);
   } catch (error) {
     console.error("Error deleting category:", error);
-    const response: CategoryFailResponse = {
-      status: "error",
-      message: "Internal server error while deleting category",
-    };
-    res.status(500).json(response);
+    sendApiError(res, 500, "Internal server error while deleting category");
   }
 };

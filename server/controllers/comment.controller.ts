@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 
-import db from "../models/index.js";
+import { sendApiError } from "../utils/api-envelope.js";
+import { getSequelizeModel } from "../utils/sequelize-models.js";
 
 type Identifier = number | string;
 
@@ -41,63 +42,18 @@ interface PostModel {
   ) => Promise<PostInstance | null>;
 }
 
-const getModel = <T>(model: unknown, modelName: string): T => {
-  if (
-    (typeof model !== "object" && typeof model !== "function") ||
-    model === null ||
-    typeof (model as { findByPk?: unknown }).findByPk !== "function"
-  ) {
-    throw new Error(
-      `Model '${modelName}' is not available on the database instance.`,
-    );
-  }
+const getComments = (): CommentModel =>
+  getSequelizeModel<CommentModel>("comments");
 
-  return model as T;
-};
+const getPosts = (): PostModel => getSequelizeModel<PostModel>("posts");
 
-const getComments = (): CommentModel => {
-  const commentsModel =
-    db.sequelize?.models?.comments || (db as Record<string, unknown>).comments;
-  return getModel<CommentModel>(commentsModel, "comments");
-};
-
-const getPosts = (): PostModel => {
-  const postsModel =
-    db.sequelize?.models?.posts || (db as Record<string, unknown>).posts;
-  return getModel<PostModel>(postsModel, "posts");
-};
-
-const ensureReferenceModel = (
-  model: unknown,
-  modelName: string,
-): Record<string, unknown> => {
-  if (
-    (typeof model !== "object" && typeof model !== "function") ||
-    model === null
-  ) {
-    throw new Error(
-      `Model '${modelName}' is not available on the database instance.`,
-    );
-  }
-
-  return model as Record<string, unknown>;
-};
-
-const getUsers = (): Record<string, unknown> => {
-  const usersModel =
-    db.sequelize?.models?.users || (db as Record<string, unknown>).users;
-  return ensureReferenceModel(usersModel, "users");
-};
+const getUsers = (): Record<string, unknown> =>
+  getSequelizeModel<Record<string, unknown>>("users");
 
 interface CommentSuccessResponse<T> {
   status: "success";
   message: string;
   data?: T;
-}
-
-interface CommentFailResponse {
-  status: "fail" | "error";
-  message: string;
 }
 
 interface CreateCommentBody {
@@ -116,50 +72,30 @@ export const createComment = async (
     const user = req.user;
 
     if (!user) {
-      const response: CommentFailResponse = {
-        status: "fail",
-        message: "Authentication required",
-      };
-      res.status(401).json(response);
+      sendApiError(res, 401, "Authentication required");
       return;
     }
 
     if (typeof commentBody !== "string" || commentBody.trim().length === 0) {
-      const response: CommentFailResponse = {
-        status: "fail",
-        message: "Comment body is required",
-      };
-      res.status(400).json(response);
+      sendApiError(res, 400, "Comment body is required");
       return;
     }
 
     const post = await getPosts().findByPk(postId);
     if (!post) {
-      const response: CommentFailResponse = {
-        status: "fail",
-        message: "Post not found",
-      };
-      res.status(404).json(response);
+      sendApiError(res, 404, "Post not found");
       return;
     }
 
     if (parentCommentId) {
       const parentComment = await getComments().findByPk(parentCommentId);
       if (!parentComment) {
-        const response: CommentFailResponse = {
-          status: "fail",
-          message: "Parent comment not found",
-        };
-        res.status(404).json(response);
+        sendApiError(res, 404, "Parent comment not found");
         return;
       }
 
       if (String(parentComment.post_id) !== String(postId)) {
-        const response: CommentFailResponse = {
-          status: "fail",
-          message: "Parent comment does not belong to this post",
-        };
-        res.status(400).json(response);
+        sendApiError(res, 400, "Parent comment does not belong to this post");
         return;
       }
     }
@@ -240,11 +176,7 @@ export const getCommentsByPost = async (
 
     const post = await getPosts().findByPk(postId);
     if (!post) {
-      const response: CommentFailResponse = {
-        status: "fail",
-        message: "Post not found",
-      };
-      res.status(404).json(response);
+      sendApiError(res, 404, "Post not found");
       return;
     }
 
@@ -304,21 +236,13 @@ export const updateComment = async (
 
     const comment = await getComments().findByPk(commentId);
     if (!comment) {
-      const response: CommentFailResponse = {
-        status: "fail",
-        message: "Comment not found",
-      };
-      res.status(404).json(response);
+      sendApiError(res, 404, "Comment not found");
       return;
     }
 
     const user = req.user;
     if (!user) {
-      const response: CommentFailResponse = {
-        status: "fail",
-        message: "Authentication required",
-      };
-      res.status(401).json(response);
+      sendApiError(res, 401, "Authentication required");
       return;
     }
 
@@ -326,11 +250,11 @@ export const updateComment = async (
       user.role !== "admin" &&
       String(user.user_id) !== String(comment.user_id)
     ) {
-      const response: CommentFailResponse = {
-        status: "fail",
-        message: "Access denied: You can only update your own comments",
-      };
-      res.status(403).json(response);
+      sendApiError(
+        res,
+        403,
+        "Access denied: You can only update your own comments",
+      );
       return;
     }
 
@@ -375,21 +299,13 @@ export const deleteComment = async (
     const comment = await getComments().findByPk(commentId);
 
     if (!comment) {
-      const response: CommentFailResponse = {
-        status: "fail",
-        message: "Comment not found",
-      };
-      res.status(404).json(response);
+      sendApiError(res, 404, "Comment not found");
       return;
     }
 
     const user = req.user;
     if (!user) {
-      const response: CommentFailResponse = {
-        status: "fail",
-        message: "Authentication required",
-      };
-      res.status(401).json(response);
+      sendApiError(res, 401, "Authentication required");
       return;
     }
 
@@ -397,11 +313,11 @@ export const deleteComment = async (
       user.role !== "admin" &&
       String(user.user_id) !== String(comment.user_id)
     ) {
-      const response: CommentFailResponse = {
-        status: "fail",
-        message: "Access denied: You can only delete your own comments",
-      };
-      res.status(403).json(response);
+      sendApiError(
+        res,
+        403,
+        "Access denied: You can only delete your own comments",
+      );
       return;
     }
 
