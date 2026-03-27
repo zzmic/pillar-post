@@ -34,7 +34,7 @@ router.post(
   createPost,
 );
 
-router.get("/", getAllPosts);
+router.get("/", optionalAuthenticate, getAllPosts);
 
 router.get(
   "/:post_id",
