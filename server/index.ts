@@ -16,7 +16,7 @@ import { Pool } from "pg";
 
 const PgSessionStore = connectPgSimple(session);
 
-import db from "./models/index.js";
+import db, { initDb } from "./models/index.js";
 import config from "./config/config.js";
 const environment = (process.env.NODE_ENV ??
   "development") as keyof typeof config;
@@ -173,7 +173,22 @@ app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
   sendApiError(res, statusCode, message);
 });
 
-// Remember to run the database migrations before starting the server.
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+/**
+ * Initialize the database and start the server.
+ */
+async function start() {
+  await initDb();
+  app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+  });
+}
+
+/**
+ * REMEMBER: Run the database migrations before starting the server.
+ * Start the server by calling `start` and catching any errors.
+ * If an error occurs, log the error and exit the process with a status code of 1.
+ */
+start().catch((error: unknown) => {
+  console.error("Failed to start server:", error);
+  process.exit(1);
 });
